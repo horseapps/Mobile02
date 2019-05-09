@@ -1,0 +1,47 @@
+page-account-setup-provider {
+  .btn-container {
+    height: 88px;
+
+    .button {
+      margin-top: 20px;
+    }
+  }
+
+  .stripe-connect {
+    width: 90%;
+    margin: 0 auto;
+  }
+
+  .solid-round {
+    box-shadow: none;
+  }
+
+  .add-item {
+    .label-md {
+      margin-left: 8px;
+    }
+  }
+
+  .remove-btn {
+    margin-right: 0px !important;
+  }
+
+  .add-btn {
+    position: absolute;
+    right: 12px;
+  }
+
+  .service-item {
+    min-height: 44px;
+  }
+
+  .input-cover {
+    width: 85%;
+    display: none;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
+

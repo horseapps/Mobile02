@@ -1,0 +1,48 @@
+<ion-header class="filter-header">
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back" color="primary"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Filter</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content class="filter-content">
+  <ion-list no-lines class="border-btm">
+    <ion-item class="border-btm">
+      <ion-label class="text-bold">Sort by</ion-label>
+      <ion-select [(ngModel)]="filterSort" placeholder="Select" class="hidden-select">
+        <ion-option>None</ion-option>
+        <ion-option *ngFor="let option of sortOptions" [value]="option.name">{{option.formattedName}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-list-header class="list-header">DATE RANGE:</ion-list-header>
+
+    <ion-item class="input-item">
+      <ion-label>Start Date</ion-label>
+      <ion-datetime [(ngModel)]="filterStartDate" placeholder="Select" displayFormat="MMM D, YYYY" min="{{minYear}}" max="{{maxYear}}"></ion-datetime>
+    </ion-item>
+
+    <ion-item class="input-item">
+      <ion-label>End Date</ion-label>
+      <ion-datetime [(ngModel)]="filterEndDate" placeholder="Select" displayFormat="MMM D, YYYY" min="{{minYear}}" max="{{maxYear}}"></ion-datetime>
+    </ion-item>
+
+    <ion-item class="bottom-buttons">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <button ion-button block round outline color="secondary" (click)="clearFilter()">Clear</button>
+          </ion-col>
+          <ion-col>
+            <button ion-button block round color="secondary" (click)="saveFilter()">Apply</button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+
+  </ion-list>
+</ion-content>

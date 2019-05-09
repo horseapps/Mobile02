@@ -1,0 +1,103 @@
+page-invoice-detail {
+  .avatar-item {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .content {
+    background-color: color($colors, light);
+  }
+
+  .text-input::-moz-placeholder {
+    color: color($colors, secondary);
+  }
+
+  .text-input:-ms-input-placeholder {
+    color: color($colors, secondary);
+  }
+
+  .text-input::-webkit-input-placeholder {
+    color: color($colors, secondary);
+  }
+
+  .grid {
+    p {
+      margin: 5px 0px;
+    }
+  }
+
+  .text-input-ios {
+    margin: 11px 2px 11px 0px;
+  }
+
+  .text-input-md {
+    margin: 13px;
+  }
+
+  .tip-item {
+    padding-left: 10px;
+  }
+
+  .payment-section {
+    .item {
+      padding-left: 10px;
+    }
+
+    .col {
+      font-size: 16px;
+    }
+
+    .small-date {
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .service-grid {
+    padding-right: 0px;
+
+    .col {
+      padding-right: 0px;
+    }
+  }
+
+  .item-ios h2 {
+    min-height: 21px;
+  }
+
+  .horse-item {
+    padding-left: 0px;
+  }
+
+  ion-item {
+    ion-grid {
+      padding-bottom: 0px !important;
+    }
+  }
+
+  .zero-top-margin-item {
+    .label {
+      margin-top: 0px;
+    }
+
+    ion-grid {
+      padding-top: 0px !important;
+
+      ion-row:first-child {
+        ion-col {
+          margin-top: 0px !important;
+          padding-top: 0px !important;
+
+          p {
+            padding-top: 0px !important;
+            margin-top: 0px !important;
+          }
+        }
+      }
+    }
+
+    margin-top: 0px;
+    padding-top: 0px;
+  }
+}

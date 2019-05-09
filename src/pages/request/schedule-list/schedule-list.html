@@ -1,0 +1,346 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Schedule
+    </ion-title>
+
+    <ion-buttons end>
+      <button ion-button icon-only (click)="openFilter()">
+        <ion-icon name="options"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="chosenSegment" color="mystic" (ionChange)="segmentChanged($event)">
+      <ion-segment-button value="current" (click)="chosenSegment = 'current'">
+        Current
+      </ion-segment-button>
+      <ion-segment-button value="past" (click)="chosenSegment = 'past'">
+        Past
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+	<ion-refresher (ionRefresh)="refreshList($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+  	<ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Last refresh -->
+  <p text-center ion-text color="jumbo-grey" class="font-11 text-bold margin-bottom-none">Pull down to Refresh.</p>
+  <p text-center ion-text color="jumbo-grey" class="font-11 margin-top-none" *ngIf="lastRefresh">Last Updated: {{lastRefresh | date:'short'}}</p>
+
+  <!-- Today's requests -->
+  <ng-container *ngIf="todayRequests.length && chosenSegment === 'current'">
+    <p class="list-header">Today</p>
+    <ion-card
+      class="service-card"
+      *ngFor="let request of todayRequests"
+      [ngClass]="{
+          'pending-card' : (requestService.isPending(request) && !request._reassignedTo),
+          'cancelled-card' : ((request.deletedAt) || (isMainServiceProvider(request) && request._reassignedTo && request.declinedAt))
+        }">
+      <!-- Horse -->
+      <ion-item class="horse-item" *ngIf="request._horse">
+        <ion-avatar item-start (click)="goToHorsePublicProfile(request._horse)">
+          <img src="{{horseService.getAvatarUrlForHorse(request._horse)}}">
+        </ion-avatar>
+        <h2 class="font-14 text-bold" *ngIf="request._horse.barnName">{{request._horse.barnName}}</h2>
+        <p ion-text color="dark" *ngIf="request._horse.showName">"{{request._horse.showName}}"</p>
+
+        <button *ngIf="!request.deletedAt && !request.completedAt" ion-button item-end icon-only clear (click)="openActionSheet(request)">
+          <ion-icon name="md-more"></ion-icon>
+        </button>
+      </ion-item>
+
+      <ion-item class="request-item">
+        <!-- Show -->
+        <p class="text-uppercase font-10 margin-bottom-1x" *ngIf="request._show">{{request._show.name}} <span *ngIf="request.date">- {{request.date | amUtc | amDateFormat: 'ddd MMMM D, YYYY'}}</span></p>
+        <p class="text-uppercase font-10 margin-bottom-1x" *ngIf="!request._show || !request._show.name">Non-Show Request<span *ngIf="request.date">- {{request.date | amUtc | amDateFormat: 'ddd MMMM D, YYYY'}}</span></p>
+
+        <!-- Class -->
+        <h3 class="font-16 margin-bottom-1x">{{request.competitionClass}}</h3>
+
+        <!-- Services -->
+        <p ion-text color="dark" class="margin-bottom-1x"><span *ngFor="let service of request.services; let last = last">{{service.service}} (x{{service.quantity || 1}})<span *ngIf="!last">,</span> </span></p>
+
+        <!-- Notes -->
+        <p ion-text color="md-dark" class="font-11 text-italic" *ngIf="request.instructions">{{request.instructions}}</p>
+      </ion-item>
+
+      <!-- Trainer avatar -->
+      <ion-item *ngIf="request._horse" class="small-avatar" (click)="goToPublicProfile(request._horse._trainer, false)">
+        <ion-avatar item-start>
+          <img src="{{userService.getAvatarUrlForUser(request._horse._trainer)}}">
+        </ion-avatar>
+        <p class="font-11" ion-text color="dark">{{request._horse._trainer.name}} <span *ngIf="request._horse._trainer.barn">({{request._horse._trainer.barn}})</span></p>
+      </ion-item>
+
+      <!-- Status section -->
+      <ng-container *ngIf="chosenSegment === 'current'">
+        <!-- Main service provider or reassignee has accepted -->
+        <button 
+          *ngIf="
+            (isMainServiceProvider(request) && !request._reassignedTo && request.acceptedAt && !request.deletedAt && !request.completedAt) ||
+            (isReassignedServiceProvider(request) && request.acceptedAt && !request.deletedAt && !request.completedAt)"
+          (click)="confirmComplete(request)"
+          class="complete-btn"
+          ion-button
+          button
+          block
+          color="secondary">
+          Mark Job Complete
+        </button>
+
+        <!-- Main service provider or reassignee has completed -->
+        <ion-item 
+          *ngIf="
+            (isMainServiceProvider(request) && !request._reassignedTo && request.completedAt && !request.deletedAt) ||
+            (isReassignedServiceProvider(request) && request.completedAt && !request.deletedAt)"
+          class="status-section">
+          <p ion-text color="burgundy" class="text-bold">Completed</p>
+        </ion-item>
+
+        <!-- Request was reassigned away from this provider (by the main provider) before it was completed -->
+        <ion-item class="status-section" 
+          *ngIf="!isMainServiceProvider(request) &&
+          !isReassignedServiceProvider(request) &&
+          requestService.isPreviouslyReassigned(request)">
+          <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{requestService.currentAssignee(request)?.name}}</span></p>
+          <p ion-text color="manatee">Status: <span ion-text color="burgundy" class="text-bold">Reassigned</span></p>
+        </ion-item>
+
+        <!-- Main service provider has reassigned and its pending by reassignee-->
+        <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && requestService.isPending(request)">
+          <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+          <p ion-text color="manatee">Status: <span ion-text color="secondary" class="text-bold">Pending</span></p>
+        </ion-item>
+
+        <!-- Main service provider has reassigned and reassignee accepted -->
+        <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && requestService.isAccepted(request)">
+          <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+          <p ion-text color="manatee">Status: <span ion-text color="teal" class="text-bold">Accepted</span></p>
+        </ion-item>
+
+        <!-- Main service provider has reassigned and reassignee completed -->
+        <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && request.completedAt">
+          <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+          <p ion-text color="manatee">Status: <span ion-text color="burgundy" class="text-bold">Completed</span></p>
+        </ion-item>
+
+        <!-- Main service provider who has reassigned and that person declined -->
+        <div class="action-btn-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && request.declinedAt">
+          <div class="status-left">
+            <p ion-text color="secondary" class="text-bold" text-left>{{request._reassignedTo?.name}} has declined.</p>
+          </div>
+
+          <div class="dismiss-job status-right" (click)="goToAssignJob(request)">
+            <p ion-text color="light" class="text-bold font-14">Choose Service Provider</p>
+          </div>
+        </div>
+
+        <!-- Assign or Accept Job -->
+        <div *ngIf="(requestService.isPending(request) && isMainServiceProvider(request) && !request._reassignedTo) || (requestService.isPending(request) && isReassignedServiceProvider(request))" class="action-btn-section">
+
+          <!-- Only main service provider can assign job -->
+          <div class="status-left" *ngIf="isMainServiceProvider(request)" (click)="goToAssignJob(request)">
+            <p ion-text color="teal" class="text-bold font-16">Assign Job</p>
+          </div>
+
+          <div class="accept-job status-right" [ngClass]="{'width-100-text-center': !isMainServiceProvider(request)}" (click)="updateStatus(request, constants.STATUSES.accept)">
+            <p ion-text color="light" class="text-bold font-16">Accept Job</p>
+          </div>
+        </div>
+
+        <!-- Job cancelled by horse manager -->
+        <div *ngIf="request.deletedAt" class="action-btn-section">
+
+          <!-- Only main service provider can assign job -->
+          <div class="status-left">
+            <p ion-text color="secondary" class="text-bold font-12" text-left>JOB CANCELLED</p>
+          </div>
+
+          <div class="dismiss-job status-right" (click)="dismissRequest(request)">
+            <p ion-text color="light" class="text-bold font-14">Dismiss</p>
+          </div>
+        </div>
+      </ng-container>
+    </ion-card>
+  </ng-container>
+
+  <!-- Main list of requests -->
+  <ng-container margin-right margin-left margin-top class="card-list" *ngIf="groupedRequests.length">
+    <p class="list-header" *ngIf="chosenSegment === 'current'">Upcoming</p>
+
+    <ng-container *ngFor="let dateGroup of groupedRequests">
+      <p class="item-header" margin-left *ngIf="!filterSort">{{dateGroup[0] | amUtc | amDateFormat: 'ddd MMMM D, YYYY'}}</p>
+      <ion-card
+        class="service-card"
+        *ngFor="let request of dateGroup[1]"
+        margin-bottom
+        [ngClass]="{
+          'pending-card' : (chosenSegment === 'current' && requestService.isPending(request) && !request._reassignedTo),
+          'cancelled-card' : (((chosenSegment === 'current') && (request.deletedAt)) || (isMainServiceProvider(request) && request._reassignedTo && request.declinedAt))
+        }">
+        <!-- Horse -->
+        <ion-item class="horse-item" *ngIf="request._horse">
+          <ion-avatar item-start (click)="goToHorsePublicProfile(request._horse)">
+            <img src="{{horseService.getAvatarUrlForHorse(request._horse)}}">
+          </ion-avatar>
+          <h2 class="font-14 text-bold" *ngIf="request._horse.barnName">{{request._horse.barnName}}</h2>
+          <p ion-text color="dark" *ngIf="request._horse.showName">"{{request._horse.showName}}"</p>
+
+          <button ion-button item-end icon-only clear *ngIf="chosenSegment === 'current' && !request.deletedAt && !request.completedAt" (click)="openActionSheet(request)">
+            <ion-icon name="md-more"></ion-icon>
+          </button>
+        </ion-item>
+
+        <ion-item class="request-item">
+          <!-- Show -->
+          <p class="text-uppercase font-10 margin-bottom-1x"*ngIf="request._show">{{request._show.name}} <span *ngIf="request.date">- {{request.date | amUtc | amDateFormat: 'ddd MMMM D, YYYY'}}</span></p>
+
+          <!-- Class -->
+          <h3 class="font-16 margin-bottom-1x">{{request.competitionClass}}</h3>
+
+          <!-- Services -->
+          <p ion-text color="dark" class="margin-bottom-1x"><span *ngFor="let service of request.services; let last = last">{{service.service}} (x{{service.quantity || 1}})<span *ngIf="!last">,</span> </span></p>
+
+          <!-- Notes -->
+          <p ion-text color="md-dark" class="font-11 text-italic" *ngIf="request.instructions">{{request.instructions}}</p>
+        </ion-item>
+
+        <!-- Trainer avatar -->
+        <ion-item *ngIf="request._horse" class="small-avatar" (click)="goToPublicProfile(request._horse._trainer, false)">
+          <ion-avatar item-start>
+            <img src="{{userService.getAvatarUrlForUser(request._horse._trainer)}}">
+          </ion-avatar>
+          <p class="font-11" ion-text color="dark">{{request._horse._trainer.name}} <span *ngIf="request._horse._trainer.barn">({{request._horse._trainer.barn}})</span></p>
+        </ion-item>
+
+        <!-- For past requests - show who request was reassigned to if not main service provider -->
+        <ng-container *ngIf="chosenSegment === 'past'">
+          <!-- Assign or Accept Job -->
+          <div *ngIf="(requestService.isPending(request) && isMainServiceProvider(request) && !request._reassignedTo) || (requestService.isPending(request) && isReassignedServiceProvider(request))"
+            class="action-btn-section">
+
+            <!-- Only main service provider can assign job -->
+            <div class="status-left" *ngIf="isMainServiceProvider(request)" (click)="goToAssignJob(request)">
+              <p ion-text color="teal" class="text-bold font-16">Assign Job</p>
+            </div>
+
+            <div class="accept-job status-right" [ngClass]="{'width-100-text-center': !isMainServiceProvider(request)}" (click)="updateStatus(request, constants.STATUSES.accept)">
+              <p ion-text color="light" class="text-bold font-16">Accept Job</p>
+            </div>
+          </div>
+
+          <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo">
+            <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo.name}}</span></p>
+          </ion-item>
+
+          <!-- Allow the accepting provider to mark a past task as completed -->
+          <button *ngIf="
+                      (isMainServiceProvider(request) && !request._reassignedTo && request.acceptedAt && !request.deletedAt && !request.completedAt) ||
+                      (isReassignedServiceProvider(request) && request.acceptedAt && !request.deletedAt && !request.completedAt)"
+            (click)="confirmComplete(request)" class="complete-btn" ion-button button block color="secondary">
+            Mark Job Complete
+          </button>
+        </ng-container>
+
+        <!-- Status section -->
+        <ng-container *ngIf="chosenSegment === 'current'">
+          <!-- Main service provider who has accepted, no reassignment -->
+          <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && !request._reassignedTo && request.acceptedAt && !request.deletedAt">
+            <p ion-text color="teal" class="text-bold">Accepted</p>
+          </ion-item>
+
+          <!-- Current user is the reassignee and they have accepted -->
+          <ion-item class="status-section" *ngIf="isReassignedServiceProvider(request) && request.acceptedAt && !request.deletedAt && !request.completedAt">
+            <p ion-text color="teal" class="text-bold">Accepted</p>
+          </ion-item>
+
+          <!-- Current user is the reassignee and they have completed -->
+          <ion-item class="status-section" *ngIf="isReassignedServiceProvider(request) && request.completedAt && !request.deletedAt">
+            <p ion-text color="burgundy" class="text-bold">Completed</p>
+          </ion-item>
+
+          <!-- Main service provider has reassigned and its pending by reassignee-->
+          <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && requestService.isPending(request)">
+            <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+            <p ion-text color="manatee">Status: <span ion-text color="secondary" class="text-bold">Pending</span></p>
+          </ion-item>
+
+          <!-- Main service provider has reassigned and reassignee accepted -->
+          <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && requestService.isAccepted(request) && !request.deletedAt">
+            <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+            <p ion-text color="manatee">Status: <span ion-text color="teal" class="text-bold">Accepted</span></p>
+          </ion-item>
+
+          <!-- Main service provider has reassigned and reassignee completed -->
+          <ion-item class="status-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && request.completedAt && !request.deletedAt">
+            <p ion-text color="jumbo-grey" class="text-bold">Assigned to: <span ion-text color="dark">{{request._reassignedTo?.name}}</span></p>
+            <p ion-text color="manatee">Status: <span ion-text color="burgundy" class="text-bold">Completed</span></p>
+          </ion-item>
+
+          <!-- Main service provider who has reassigned and that person declined -->
+          <div class="action-btn-section" *ngIf="isMainServiceProvider(request) && request._reassignedTo && request.declinedAt">
+            <div class="status-left">
+              <p ion-text color="secondary" class="text-bold" text-left>{{request._reassignedTo?.name}} has declined.</p>
+            </div>
+
+            <div class="dismiss-job status-right" (click)="goToAssignJob(request)">
+              <p ion-text color="light" class="text-bold font-14">Choose Service Provider</p>
+            </div>
+          </div>
+
+          <!-- Assign or Accept Job -->
+          <div *ngIf="(requestService.isPending(request) && isMainServiceProvider(request) && !request._reassignedTo) || (requestService.isPending(request) && isReassignedServiceProvider(request))" class="action-btn-section">
+
+            <!-- Only main service provider can assign job -->
+            <div class="status-left" *ngIf="isMainServiceProvider(request)" (click)="goToAssignJob(request)">
+              <p ion-text color="teal" class="text-bold font-16">Assign Job</p>
+            </div>
+
+            <div class="accept-job status-right" [ngClass]="{'width-100-text-center': !isMainServiceProvider(request)}" (click)="updateStatus(request, constants.STATUSES.accept)">
+              <p ion-text color="light" class="text-bold font-16">Accept Job</p>
+            </div>
+          </div>
+
+          <!-- Job cancelled by horse manager -->
+          <div *ngIf="request.deletedAt" class="action-btn-section">
+
+            <!-- Only main service provider can assign job -->
+            <div class="status-left">
+              <p ion-text color="secondary" class="text-bold font-12" text-left>JOB CANCELLED</p>
+            </div>
+
+            <div class="dismiss-job status-right" (click)="dismissRequest(request)">
+              <p ion-text color="light" class="text-bold font-14">Dismiss</p>
+            </div>
+          </div>
+        </ng-container>
+      </ion-card>
+    </ng-container>
+  </ng-container>
+
+  <ion-item *ngIf="!requests.length && !todayRequests.length && !isLoading && !isRefreshing" text-wrap class="blank-state">
+    <div text-center>
+      <ion-icon name="horseicon"></ion-icon>
+      <p *ngIf="chosenSegment === 'current'">You don't have any upcoming requests.</p>
+      <p *ngIf="chosenSegment === 'past'">You don't have any past requests.</p>
+    </div>
+  </ion-item>
+
+	<ion-infinite-scroll (ionInfinite)="findAll($event)" *ngIf="canLoadMore && !isRefreshing">
+    <ion-infinite-scroll-content
+      loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>

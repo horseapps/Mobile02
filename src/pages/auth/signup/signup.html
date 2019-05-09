@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-navbar class="signup-navbar">
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="goToLogin()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+<ion-content class="authentication">
+  <div class="logo">
+    <div></div>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="register(form)" novalidate>
+    <ion-list margin-right margin-left>
+      <ion-item class="border-btm">
+        <ion-input
+          placeholder="Email"
+          type="email"
+          formControlName="email">
+        </ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.email"></control-errors>
+      <ion-item>
+        <ion-input
+          placeholder="Password"
+          type="password"
+          formControlName="password"
+          required>
+        </ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.password"></control-errors>
+    </ion-list>
+    <div padding class="btn-container">
+      <button ion-button block round type="submit" color="teal" class="solid-round" [disabled]="!form.valid">Signup</button>
+    </div>
+  </form>
+  <ion-row>
+    <p ion-text color="light" class="underline text-bold width-100-text-center" (click)="goToLogin()">Log In Instead</p>
+  </ion-row>
+</ion-content>

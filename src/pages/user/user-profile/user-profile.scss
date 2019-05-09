@@ -1,0 +1,63 @@
+page-user-profile {
+  .header .toolbar-background {
+    border: none;
+  }
+
+  .header-md::after {
+    background-image: none;
+  }
+
+  .item {
+    border-bottom: solid 1px #C8C7CC !important;
+  }
+
+  .loading-item {
+    background-color: map-get($colors, primary);
+    border: none !important;
+
+    ion-spinner * {
+      stroke: #fff;
+      fill: #fff;
+    }
+  }
+
+  .grid {
+    padding: 5px 11px;
+  }
+
+  .add-payment {
+    color: map-get($colors, secondary);
+
+    .fa {
+      margin-right: 4px;
+    }
+  }
+
+  .btn-container {
+    height: 88px;
+    width: 80%;
+    margin: 0 auto;
+
+    button {
+      margin-top: 15px;
+    }
+  }
+
+  .provider-info,
+  .provider-actions {
+    border-bottom: none !important;
+    background-color: color($colors, lt-blue);
+    margin-top: 0em;
+    margin-bottom: 0em;
+  }
+
+  .info-column {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+
+  .delete-btn {
+    color: color($colors, danger);
+    font-size: 25px;
+  }
+}

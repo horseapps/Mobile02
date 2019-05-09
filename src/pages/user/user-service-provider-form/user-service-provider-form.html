@@ -1,0 +1,42 @@
+<form novalidate [formGroup]="form" class="main-form">
+  <ion-list>
+    <p class="item-header" margin-left>Service Provider</p>
+    <ion-item (click)="goToSearchModal(serviceProviderFunction, 'Provider Name')" class="search-item">
+
+      <ion-avatar item-start *ngIf="form.controls._provider.value">
+        <img *ngIf="!updatingServiceProvider || newProviderSelected" src="{{userService.getAvatarUrlForUser(form.controls._provider.value)}}">
+
+        <img *ngIf="updatingServiceProvider && !newProviderSelected" src="assets/images/grey-placeholder.jpg">
+      </ion-avatar>
+
+      <p *ngIf="!form.controls._provider.value" ion-text color="jumbo-grey">Service Provider Name</p>
+
+      <p [ngClass]="{'color-grey': provider}" *ngIf="form.controls._provider.value && (!updatingServiceProvider || newProviderSelected)"
+        ion-text color="dark">{{form.controls._provider.value.name}}</p>
+      <p ion-text color="danger" *ngIf="updatingServiceProvider && !newProviderSelected">Select New Service Provider</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+
+    <p class="item-header" margin-left>Label</p>
+    <ion-item>
+      <ion-select formControlName="label">
+        <ion-option value="farrier">Farrier</ion-option>
+        <ion-option value="vet">Vet</ion-option>
+        <ion-option value="hauling">Hauling</ion-option>
+        <ion-option value="braider">Braider</ion-option>
+        <ion-option value="clipping">Clipping</ion-option>
+        <ion-option value="therapy">Therapy</ion-option>
+        <ion-option value="other">Other</ion-option>
+      </ion-select>
+    </ion-item>
+    <ion-item *ngIf="form.controls.label.value === 'other'" formControlName="customLabel">
+      <ion-input type="text" placeholder="Custom Label"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <div class="btn-container">
+    <button round outline color="secondary" ion-button block (click)="goToConfirmation()" strong="true" [disabled]="!form.valid || (form.controls.label.value === 'other' && form.controls.customLabel.value === '')">
+      Next
+    </button>
+  </div>
+</form>

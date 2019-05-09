@@ -1,0 +1,211 @@
+<form novalidate [formGroup]="form" class="main-form">
+  <!-- Avatar -->
+  <avatar-upload-item [forObject]="horseService.horse"></avatar-upload-item>
+
+  <ion-list margin-bottom>
+    <!-- Barn name -->
+    <ion-item>
+      <ion-input formControlName="barnName" type="text" placeholder="Horse Barn Name (required)"></ion-input>
+    </ion-item>
+    <control-errors [control]="form.controls.barnName" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Show name -->
+    <ion-item>
+      <ion-input formControlName="showName" type="text" placeholder="Horse Show Name (required)"></ion-input>
+    </ion-item>
+    <control-errors [control]="form.controls.showName" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Gender -->
+    <ion-item>
+      <ion-label>Gender (required)</ion-label>
+      <ion-select (ionChange)="updateGender($event)" [(ngModel)]="gender" [ngModelOptions]="{ standalone: true }">
+        <ion-option *ngFor="let gender of constants.GENDERS" [value]="gender">{{gender}}</ion-option>
+      </ion-select>
+    </ion-item>
+    <div *ngIf="submitAttempt && !form.controls.gender.value.length" class="form-control-error">Required</div>
+
+    <ion-item>
+      <ion-label>Birth Year</ion-label>
+      <ion-datetime displayFormat="YYYY" formControlName="birthYear" min="{{minYear}}"></ion-datetime>
+      <ion-icon name="md-arrow-dropdown" item-end></ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <ion-list>
+    <!-- Description -->
+    <ion-item>
+      <ion-textarea
+        autocomplete="on"
+        autocorrect="on"
+        fz-elastic
+        rows="2"
+        formControlName="description"
+        type="text"
+        placeholder="Add any necessary notes on personality or temperament here."></ion-textarea>
+    </ion-item>
+
+    <!-- Horse trainer -->
+    <p class="mixed-case-header" margin-left>HORSE TRAINER (required)</p>
+    <ion-item (click)="goToSearchModal({ function: trainerFunction, placeholderText:'Trainer Name' })" class="search-item">
+      <ion-avatar item-start *ngIf="form.controls._trainer.value">
+        <img src="{{userService.getAvatarUrlForUser(form.controls._trainer.value)}}">
+      </ion-avatar>
+
+      <p *ngIf="!form.controls._trainer.value" ion-text color="jumbo-grey">Trainer Name</p>
+      <p *ngIf="form.controls._trainer.value" ion-text color="dark">{{form.controls._trainer.value.name}}</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+    <control-errors [control]="form.controls._trainer" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Horse owners -->
+    <p class="item-header-no-uppercase" margin-left>HORSE OWNER(S) (optional)</p>
+    <ion-list formArrayName="_owners" class="margin-bottom-none">
+
+      <!-- Empty item - show if there are no owners -->
+      <ion-item class="owner-input-div" (click)="goToSearchModal({ function: ownerFunction, placeholderText: 'Owner Name', ownerSearch: true })" *ngIf="!form.controls._owners.controls.length">
+        <ion-label ion-text color="color-grey" class="empty-owner-label">Owner Name</ion-label>
+        <ion-avatar item-start>
+          <img src="assets/images/avatar-placeholder.png">
+        </ion-avatar>
+        <ion-input [disabled]="true" placeholder="0%" type="tel"></ion-input>
+      </ion-item>
+
+      <div id="owner-section" *ngFor="let owner of form.controls._owners.controls; let i = index">
+        <div class="owner-input-div" >
+          <ion-item *ngIf="form.controls._owners.controls.length" [formGroupName]="i">
+            <ion-avatar item-start (click)="goToSearchModal({ function: ownerFunction, placeholderText: 'Owner Name', index: i, ownerSearch: true })" class="wide-avatar">
+              <img *ngIf="owner.value._user" src="{{userService.getAvatarUrlForUser(owner.value._user)}}">
+              <img *ngIf="!owner.value._user" src="assets/images/avatar-placeholder.png">
+
+              <ion-label (click)="goToSearchModal({ function: ownerFunction, placeholderText: 'Owner Name', index: i, ownerSearch: true })" ion-text color="dark" *ngIf="owner.value._user">{{owner.value._user.name}}</ion-label>
+              <ion-label (click)="goToSearchModal({ function: ownerFunction, placeholderText: 'Owner Name', ownerSearch: true })" ion-text color="color-grey" *ngIf="!owner.value._user">Owner Name</ion-label>
+            </ion-avatar>
+            <ion-input (ionFocus)="scrollToOwnerInput(); clearValue($event)" [ngClass]="{'color-grey': !owner.value.percentage}" type="tel" formControlName="percentage"></ion-input>
+
+            <!-- Remove owner -->
+            <ion-icon class="remove-btn" (click)="removeOwner(i)" color="danger" name="remove-circle" item-right></ion-icon>
+          </ion-item>
+
+          <p [ngClass]="{'color-grey': !owner.value.percentage}" class="percentage" *ngIf="form.controls._owners.controls.length !== 0">%</p>
+        </div>
+
+        <div class="form-control-error" *ngIf="owner.controls.percentage.value && !owner.controls.percentage.valid && !owner.controls.percentage.pristine">Must be a valid whole number greater than 0</div>
+      </div>
+
+      <div class="form-control-error" *ngIf="form.controls._owners.value.length && ownershipTotal() !== 100">All percentages must be whole numbers equaling 100%</div>
+
+      <!-- Add new owner -->
+      <ion-item class="add-item" *ngIf="form.controls._owners.controls.length" (click)="goToSearchModal({ function: ownerFunction, placeholderText: 'Owner Name', ownerSearch: true })">
+        <span ion-text color="secondary">Add Another Horse Owner <ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon></span>
+      </ion-item>
+    </ion-list>
+
+    <!-- Leased To -->
+    <ion-grid no-margin no-padding>
+      <ion-row margin-left class="header-with-button">
+        <ion-col col-10>
+          <p class="item-header" item-left >Leased To</p>
+        </ion-col>
+        <ion-col col-2 text-right>
+          <ion-icon item-content class="remove-btn" (click)="removeLeasedTo()" color="danger" name="remove-circle" item-right></ion-icon>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+    <ion-item (click)="goToSearchModal({function: leasedToFunction, placeholderText: 'Leased To' })" class="search-item">
+      <ion-avatar item-start *ngIf="form.controls._leasedTo.value">
+        <img src="{{userService.getAvatarUrlForUser(form.controls._leasedTo.value)}}">
+      </ion-avatar>
+    
+      <p *ngIf="!form.controls._leasedTo.value" ion-text color="jumbo-grey">Lessee Name</p>
+      <p *ngIf="form.controls._leasedTo.value" ion-text color="dark">{{form.controls._leasedTo.value.name}}</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+    <p 
+    margin-left 
+    margin-right 
+    ion-text 
+    color="dark"
+    class="line-height">
+      Use the “Leased to” field to attach a Horse Manager to this horse profile in order to forward payment responsibilities until
+    the Leaser is removed.
+    </p>
+  </ion-list>
+
+  <p class="item-header-no-uppercase" margin-left>REGISTRATION INFO (optional)</p>
+  <!-- Registrations -->
+  <ion-list formArrayName="registrations" class="registration-list">
+    <ion-item *ngFor="let registration of form.controls.registrations.controls; let i=index" class="registration-item">
+
+      <ion-item [formGroupName]="i" class="border-btm-none registration-item">
+        <ion-input autocomplete="on" autocorrect="on" type="text" formControlName="name" placeholder="USEF Registration"></ion-input>
+        <ion-input text-right type="text" formControlName="number" placeholder="#"></ion-input>
+      </ion-item>
+
+      <!-- Remove registration -->
+      <button ion-button icon-only clear (click)="removeRegistration(i)" class="remove-btn">
+        <ion-icon color="danger" name="remove-circle"></ion-icon>
+      </button>
+    </ion-item>
+
+    <!-- Add registration -->
+    <ion-item (click)="addRegistration()" class="add-item">
+      <span ion-text color="secondary">Add Another Registration<ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon></span>
+    </ion-item>
+    <p class="form-control-error" *ngIf="registrationError && submitAttempt">Registration must have a name</p>
+  </ion-list>
+
+  <ion-list>
+    <!-- Sire -->
+    <ion-item>
+      <ion-input formControlName="sire" type="text" placeholder="Sire" (keyup)="maxLength(form.controls.sire.value, 'sire')" maxlength="50"></ion-input>
+    </ion-item>
+    <control-errors [control]="form.controls.sire" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Dam -->
+    <ion-item>
+      <ion-input formControlName="dam" type="text" placeholder="Dam" (keyup)="maxLength(form.controls.dam.value, 'dam')" maxlength="50"></ion-input>
+    </ion-item>
+    <control-errors [control]="form.controls.dam" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Color -->
+    <ion-item>
+      <ion-input formControlName="color" type="text" placeholder="Color" (keyup)="maxLength(form.controls.color.value, 'color')" maxlength="50"></ion-input>
+    </ion-item>
+    <control-errors [control]="form.controls.color" [submitAttempt]="submitAttempt"></control-errors>
+
+    <!-- Height -->
+    <ion-item>
+      <ion-input *ngIf="platform.is('android')" formControlName="height" type="number" placeholder="Height"></ion-input>
+      <ion-input *ngIf="platform.is('ios')" formControlName="height" type="text" placeholder="Height"></ion-input>
+      <ion-input *ngIf="!platform.is('cordova')" formControlName="height" type="text" placeholder="Height"></ion-input>
+    </ion-item>
+    <div class="form-control-error" *ngIf="!form.controls.height.valid">Must be a valid number</div>
+  </ion-list>
+
+  <ion-list>
+    <button
+      color="secondary"
+      round
+      class="solid-round"
+      ion-button
+      block
+      (click)="submit()"
+      strong="true"
+      [disabled]="shouldDisableSaveButton()">
+      Save
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </ion-list>
+
+  <div class="btn-container" *ngIf="horse">
+    <button
+      round
+      class="solid-round"
+      color="french-grey"
+      ion-button
+      block
+      (click)="deleteHorse()">
+      Delete Horse Profile
+    </button>
+  </div>
+</form>

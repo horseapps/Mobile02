@@ -1,0 +1,34 @@
+<ion-content class="authentication">
+  <div class="logo">
+    <div></div>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="login()" novalidate>
+    <ion-list margin-right margin-left>
+      <ion-item class="border-btm">
+        <ion-input
+          type="email"
+          placeholder="Email"
+          formControlName="email"
+          required></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.email"></control-errors>
+      <ion-item>
+        <ion-input
+          type="password"
+          placeholder="Password"
+          formControlName="password"
+          required></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.password"></control-errors>
+    </ion-list>
+    <div padding class="btn-container">
+      <button ion-button block round type="submit" color="teal" class="solid-round" [disabled]="!form.valid">Log in</button>
+    </div>
+  </form>
+  <ion-row justify-content-center>
+    <p ion-text color="light" class="underline text-bold" (click)="goToForgotPassword()">Forgot Password?</p>
+  </ion-row>
+  <ion-row justify-content-center>
+    <p ion-text class="text-bold width-100-text-center" color="light">Don't have an account? <span class="underline" (click)="goToSignup()">Sign Up</span></p>
+  </ion-row>
+</ion-content>

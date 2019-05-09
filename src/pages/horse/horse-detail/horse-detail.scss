@@ -1,0 +1,114 @@
+page-horse-detail {
+  .header .toolbar-background {
+    border: none;
+  }
+
+  .header-md::after {
+    background-image: none;
+  }
+
+  .list > .item-block:last-child {
+    border-bottom: solid 1px color($colors, french-grey);
+  }
+
+  .horse-owners {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+    background-color: color($colors, light);
+
+    div {
+      flex: 0 0 auto;
+    }
+
+    p {
+      font-size: 12px;
+      line-height: 17px;
+      color: color($colors, dark);
+    }
+  }
+
+  .created-by-div {
+    height: 30px;
+    background-color: #C7CFD6;
+
+    p {
+      border-bottom: solid 1px color($colors, french-grey);
+      border-top: solid 1px color($colors, french-grey);
+      padding: 7px 7px 7px 16px;
+      margin-top: 0px;
+      color: color($colors, primary);
+      font-size: 13px;
+    }
+  }
+
+  .blank-state {
+    margin-top: 12%;
+  }
+
+  .btn-container {
+    position: fixed;
+    bottom: 55px;
+    width: 100%;
+  }
+
+  .note-btn {
+    font-size: 20px;
+    margin-right: 35px;
+  }
+
+  .horse-info-chunk {
+    background-color: color($colors, lt-blue);
+    border-bottom: solid 1px color($colors, french-grey);
+
+    p {
+      color: black;
+    }
+
+    p.item-header {
+      color: color($colors, primary);
+    }
+  }
+  // iPhone X needs different styles
+  @media only screen
+    and (device-width: 375px)
+    and (device-height: 812px)
+    and (-webkit-device-pixel-ratio: 3) {
+    .btn-container {
+      bottom: 80px;
+    }
+  }
+
+  .title {
+    margin: 0px;
+    padding: 16px 0px 0px 16px;
+    background-color: color($colors, light);
+    font-size: 12px;
+    color: color($colors, primary) !important;
+  }
+
+  .border-left-burgundy {
+    border-left: solid 5px color($colors, lt-burgundy);
+  }
+
+  .border-left-teal {
+    border-left: solid 5px color($colors, teal);
+  }
+
+  .border-left-secondary {
+    border-left: solid 5px color($colors, secondary);
+  }
+
+  .declined-card {
+    border: solid 1px color($colors, secondary);
+  }
+
+  .service-card {
+    .item-block {
+      min-height: 6.4rem;
+      max-height: 6.4rem;
+    }
+  }
+}

@@ -1,0 +1,110 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button clear (click)="dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+
+    <ion-title>Edit Profile</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+  <form novalidate [formGroup]="form" class="main-form">
+    <!-- Avatar -->
+    <avatar-upload-item *ngIf="authService.currentUser" [forObject]="authService.currentUser"></avatar-upload-item>
+
+    <ion-list>
+      <!-- Name -->
+      <p class="item-header" margin-left>Name</p>
+      <ion-item>
+        <ion-input formControlName="name" type="text" placeholder="Your Name"></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.name" [submitAttempt]="submitAttempt"></control-errors>
+
+      <!-- Barn -->
+      <p class="item-header" margin-left *ngIf="authService.isManager()">Barn Name</p>
+      <ion-item *ngIf="authService.isManager()">
+        <ion-input formControlName="barn" type="text" placeholder="Your Barn Name"></ion-input>
+      </ion-item>
+      <control-errors *ngIf="authService.isManager()" [control]="form.controls.barn" [submitAttempt]="submitAttempt"></control-errors>
+
+      <!-- Phone Number -->
+      <p class="item-header" margin-left>Phone</p>
+      <ion-item>
+        <!-- Using regular input because text mask does not work on ion-item tag -->
+        <input class="telephone-input" formControlName="phone" type="text" placeholder="Phone Number" [textMask]="{mask: phoneMask, guide: false}"/>
+      </ion-item>
+      <control-errors [control]="form.controls.phone" [submitAttempt]="submitAttempt"></control-errors>
+    </ion-list>
+
+    <p class="item-header" margin-left id="services-section" *ngIf="authService.isServiceProvider()">Service Rates</p>
+    <ion-list formArrayName="services" *ngIf="authService.isServiceProvider()">
+      <!-- Services -->
+      <div *ngFor="let service of form.controls.services.controls; let i=index" class="service-item border-btm">
+
+        <ion-item [formGroupName]="i" class="border-btm-none service-item">
+          <ion-input (ionFocus)="scrollToServiceInput()" class="service-input" autocomplete="on" autocorrect="on" text-left type="text" formControlName="service" placeholder="Enter Service"></ion-input>
+          <ion-input (ionFocus)="scrollToServiceInput()" class="rate-input" [ngClass]="{'padding-right-4x' : i === 0 }" text-right type="number" formControlName="rate" placeholder="$0.00"></ion-input>
+
+          <!-- Remove button -->
+          <ion-icon *ngIf="i !== 0" class="remove-btn" (click)="removeService(i)" color="danger" name="remove-circle" item-right></ion-icon>
+        </ion-item>
+        <control-errors [control]="form.controls.services.controls[i].controls.service"></control-errors>
+        <control-errors [control]="form.controls.services.controls[i].controls.rate"></control-errors>
+      </div>
+
+      <!-- Add service -->
+      <ion-item (click)="addService()" class="add-item">
+        <span ion-text color="secondary">Add Another <ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon></span>
+      </ion-item>
+
+      <p
+        ion-text
+        margin-right
+        margin-left
+        color="primary"
+        class="line-height">
+        Horse managers will see these prices increased by {{constants.STRIPE_PERCENTAGE * 100}}% as the HorseLinc service fee.
+      </p>
+    </ion-list>
+
+    <!-- Google Maps autocomplete location -->
+    <p class="item-header" margin-left *ngIf="authService.isManager()">Location</p>
+    <ion-list class="main-form" *ngIf="authService.isManager()">
+      <autocomplete [form]="form"></autocomplete>
+
+      <ion-item>
+        <ion-input formControlName="location" type="text" placeholder="Or enter address here"></ion-input>
+      </ion-item>
+    </ion-list>
+  </form>
+
+  <ion-list>
+    <ion-item (click)="openChangeEmail()" class="border-btm">
+      Change Email
+    </ion-item>
+
+    <ion-item (click)="openChangePassword()">
+      Change Password
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <div padding class="btn-container">
+    <button
+      ion-button
+      block
+      round
+      color="secondary"
+      class="solid-round"
+      (click)="submit()"
+      [disabled]="!form.valid || isSubmitting">
+      Save
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>
+

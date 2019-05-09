@@ -1,0 +1,20 @@
+page-schedule-filter {
+  .bottom-buttons {
+    position: absolute;
+    bottom: 0px;
+  }
+
+  .hidden-select {
+    .select-icon {
+      display: none;
+    }
+  }
+
+  ion-select {
+    max-width: 80%;
+  }
+
+  .list-header {
+    margin-left: 0px;
+  }
+}

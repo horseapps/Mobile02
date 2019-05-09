@@ -1,0 +1,37 @@
+<form novalidate [formGroup]="form" class="main-form">
+  <ion-list>
+    <p class="item-header" margin-left>Payment Approver</p>
+    <ion-item (click)="goToSearchModal(paymentApproverFunction, 'Approver Name')" class="search-item">
+    
+      <ion-avatar item-start *ngIf="form.controls._approver.value">
+        <img *ngIf="!updatingPaymentApprover || newApproverSelected" src="{{userService.getAvatarUrlForUser(form.controls._approver.value)}}">
+    
+        <img *ngIf="updatingPaymentApprover && !newApproverSelected" src="assets/images/grey-placeholder.jpg">
+      </ion-avatar>
+    
+      <p *ngIf="!form.controls._approver.value" ion-text color="jumbo-grey">Payment Approver Name</p>
+    
+      <p [ngClass]="{'color-grey': approver}" *ngIf="form.controls._approver.value && (!updatingPaymentApprover || newApproverSelected)"
+        ion-text color="dark">{{form.controls._approver.value.name}}</p>
+      <p ion-text color="danger" *ngIf="updatingPaymentApprover && !newApproverSelected">Select New Payment Approver</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+
+    <p class="item-header" margin-left>Dollar Value</p>
+    <ion-item>
+      <ion-label>Unlimited</ion-label>
+      <ion-toggle formControlName="isUnlimited" (click)="toggleUnlimited()"></ion-toggle>
+    </ion-item>
+
+    <ion-item *ngIf="!form.controls.isUnlimited.value" formControlName="maxAmount">
+      <ion-label>Up to</ion-label>
+      <ion-input type="number" placeholder="$0.00"></ion-input>
+    </ion-item>
+  </ion-list>
+
+  <div class="btn-container">
+    <button round outline color="secondary" ion-button block (click)="goToConfirmation()" strong="true" [disabled]="!form.valid || (form.controls.isUnlimited.value === false && form.controls.maxAmount.value === '')">
+      Next
+    </button>
+  </div>
+</form>

@@ -1,0 +1,18 @@
+page-request-confirm {
+  .content {
+    background-color: color($colors, light);
+  }
+
+  .btn-container {
+    width: 60%;
+    margin: 0 auto;
+
+    .button {
+      margin-top: 15px;
+    }
+  }
+
+  .footer-md::before {
+    background-image: none;
+  }
+}

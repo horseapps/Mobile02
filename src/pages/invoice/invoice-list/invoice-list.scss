@@ -1,0 +1,27 @@
+page-invoice-list {
+  .segment-large {
+    width: 95%;
+    margin: 0 auto;
+  }
+
+  .btn-container {
+    position: fixed;
+    bottom: 55px;
+    width: 100%;
+  }
+
+  .card-grey {
+    background-color: color($colors, mystic);
+
+    ion-item {
+      background-color: color($colors, mystic);
+    }
+  }
+
+  @media only screen and (device-width: 375px)
+    and (device-height: 812px) {
+    .btn-container {
+      bottom: 80px;
+    }
+  }
+}

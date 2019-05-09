@@ -1,0 +1,44 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      App Log
+    </ion-title>
+
+    <ion-buttons start>
+      <button ion-button clear (click)="viewCtrl.dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+	<ion-refresher (ionRefresh)="refreshList($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+  	<ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <ion-list no-lines>
+    <ion-item no-lines *ngFor="let notification of notifications" text-wrap>
+      <p class="font-10 margin-bottom-1x">{{notification.createdAt | date: 'MMMM d, y h:mm a'}}</p>
+      <p class="font-16" ion-text color="dark">{{notification.message}}</p>
+    </ion-item>
+  </ion-list>
+
+  <ion-item *ngIf="!notifications.length && !isLoading && !isRefreshing" text-wrap class="blank-state">
+    <div text-center>
+      <ion-icon name="horseicon"></ion-icon>
+      <p>You don't have any activity yet.</p>
+    </div>
+  </ion-item>
+
+	<ion-infinite-scroll (ionInfinite)="findAll($event)" *ngIf="canLoadMore && !isRefreshing">
+    <ion-infinite-scroll-content
+      loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>

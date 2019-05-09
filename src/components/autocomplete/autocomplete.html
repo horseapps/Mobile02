@@ -1,0 +1,8 @@
+<ion-searchbar (ionFocus)="focus = true" (ionBlur)="focus = false" placeholder="Search your location" [(ngModel)]="autocomplete.query" (ionInput)="updateSearch()" class="border-top">
+</ion-searchbar>
+
+<ion-item color="white" *ngFor="let item of autocompleteItems" tappable (click)="chooseItem(item)">
+  <p>{{item}}</p>
+</ion-item>
+
+

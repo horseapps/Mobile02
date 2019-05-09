@@ -1,0 +1,50 @@
+page-schedule-list {
+  .list > .item-block:last-child {
+    border-bottom: none;
+  }
+
+  .service-card {
+    border: 1px solid color($colors, french-grey);
+
+    .horse-item {
+      min-height: 60px;
+      background-color: rgba(234, 238, 243, 0.5);
+      box-shadow: 0 2px 0 0 rgba(142, 85, 114, 0.28);
+
+      p {
+        font-size: 12px;
+      }
+
+      button {
+        top: -8px;
+      }
+    }
+
+    .small-avatar ion-avatar img {
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    .small-avatar ion-avatar {
+      min-width: 20px;
+      min-height: 20px;
+    }
+  }
+
+  .blank-state {
+    margin-top: 25%;
+  }
+
+  .pending-card {
+    border: solid 1px color($colors, teal);
+  }
+
+  .cancelled-card {
+    border: solid 1px color($colors, secondary);
+  }
+
+  .complete-btn {
+    border-radius: 0px;
+    margin-bottom: 0px;
+  }
+}

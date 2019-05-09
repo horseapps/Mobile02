@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Horse Manager Profile</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content [class.padding-300]="addPadding">
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate class="main-form">
+    <avatar-upload-item [forObject]="authService.currentUser"></avatar-upload-item>
+
+    <ion-list>
+      <ion-item>
+        <ion-input #focusInput (ionBlur)="inputFocused = false" (ionFocus)="inputFocused = true" formControlName="name" type="text" placeholder="Your Name"></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.name" [submitAttempt]="submitAttempt"></control-errors>
+
+      <ion-item>
+        <ion-input (ionBlur)="inputFocused = false" (ionFocus)="inputFocused = true" formControlName="barn" type="text" placeholder="Your Barn Name"></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.barn" [submitAttempt]="submitAttempt"></control-errors>
+
+      <ion-item>
+        <!-- Using regular input because text mask does not work on ion-item tag -->
+        <input (blur)="inputFocused = false" (focus)="inputFocused = true" class="telephone-input" formControlName="phone" type="text" placeholder="Phone Number" [textMask]="{mask: phoneMask, guide: false}"/>
+      </ion-item>
+      <control-errors [control]="form.controls.phone" [submitAttempt]="submitAttempt"></control-errors>
+    </ion-list>
+
+    <ion-list class="main-form">
+      <!-- Google Maps autocomplete -->
+      <autocomplete [form]="form"></autocomplete>
+
+      <ion-item>
+        <ion-input (ionBlur)="inputFocused = false" (ionFocus)="inputFocused = true" formControlName="location" type="text" placeholder="Or enter address here"></ion-input>
+      </ion-item>
+    </ion-list>
+
+    <p ion-text margin-left margin-right color="primary" class="line-height" padding-bottom>
+      By creating an account, you agree to the
+      <a (click)="openTermsModal()">Terms & Conditions</a> and
+      <a (click)="openPrivacyPolicyModal()">Privacy Policy</a> of HorseLinc.
+    </p>
+
+    <button round class="solid-round" color="secondary" ion-button block>Create Account</button>
+  </form>
+</ion-content>

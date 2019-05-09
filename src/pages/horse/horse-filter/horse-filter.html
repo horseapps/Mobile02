@@ -1,0 +1,55 @@
+<ion-header class="filter-header">
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back" color="primary"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Filter</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content class="filter-content">
+  <ion-list no-lines>
+    <ion-item class="border-btm">
+      <ion-label class="text-bold">Sort by</ion-label>
+      <ion-select [(ngModel)]="filterSort" placeholder="Select" class="hidden-select">
+        <ion-option>None</ion-option>
+        <ion-option *ngFor="let option of sortOptions" [value]="option.name">{{option.formattedName}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-list-header class="list-header">SHOW ONLY:</ion-list-header>
+
+    <ion-item class="border-btm">
+      <p ion-text color="primary">filterOwner: {{filterOwner}}</p>
+      <ion-label>Owner</ion-label>
+      <ion-select [(ngModel)]="filterOwner" [disabled]="isLoading">
+        <ion-option>None</ion-option>
+        <ion-option *ngFor="let owner of horseManagers" [value]="owner._id">{{owner.name}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item class="border-btm">
+      <ion-label>Trainer</ion-label>
+      <ion-select [(ngModel)]="filterTrainer" [disabled]="isLoading">
+        <ion-option>None</ion-option>
+        <ion-option *ngFor="let trainer of horseManagers" [value]="trainer._id">{{trainer.name}}</ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item class="bottom-buttons">
+      <ion-grid>
+        <ion-row>
+          <ion-col>
+            <button ion-button block round outline color="secondary" (click)="clearFilter()">Clear</button>
+          </ion-col>
+          <ion-col>
+            <button ion-button block round color="secondary" (click)="saveFilter()">Apply</button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+
+  </ion-list>
+</ion-content>

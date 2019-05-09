@@ -1,0 +1,16 @@
+.note-input {
+  width: 95%;
+  margin: 0 auto;
+  background-color: white;
+  border: solid 1px color($colors, french-grey);
+}
+
+.private-note-holder {
+  border-bottom: none !important;
+}
+
+// Remove green validation bar snippet from right edge of screen beneath input
+.item-inner {
+  border-bottom-color: transparent !important;
+  box-shadow: none !important;
+}

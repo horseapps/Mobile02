@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button clear (click)="viewCtrl.dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+
+    <ion-title>Payment Options</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+
+  <ion-refresher (ionRefresh)="repopulateApprovalLists($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Stripe Drop-in UI -->
+  <!-- Change based on if the user has payment already setup -->
+  <stripe-drop-in-payment *ngIf="!authService.hasPaymentSetup()" id="stripe-el" [submitFunction]="submitFunction" [fromAcctSetup]="true" [buttonText]="'Save'"></stripe-drop-in-payment>
+  <stripe-drop-in-payment *ngIf="authService.hasPaymentSetup()" [submitFunction]="submitFunction" [fromAcctSetup]="false" [buttonText]="'Save'" [buttonText]="'Edit'"></stripe-drop-in-payment>
+
+  <!-- Payment Approvers section, if there are some. Otherwise, placeholder? -->
+  <p class="item-header" margin-left="">Payment Approvers</p>
+  <p margin-left="" *ngIf="!hasPaymentApprovals()"><em>You have not added any payment approvers yet.</em></p>
+  <p margin-left="" *ngIf="hasPaymentApprovals()">These Horse Managers can approve payments to Service Providers on your behalf (up to a specified dollar value).</p>
+  <ion-grid>
+    <ion-row *ngFor="let approval of this.userService.paymentApprovals">
+      <ion-col col-8 align-self-end>
+        <!-- Display each payment approver's avatar (or default avatar)-->
+        <ion-item class="approval-info" *ngIf="approval" ion-item text-wrap>
+          <ion-avatar item-left *ngIf="approval._approver.avatar && approval._approver.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{approval._approver.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+
+          <ion-avatar item-left *ngIf="!approval._approver.avatar">
+            <img src="assets/images/avatar-placeholder.png" />
+          </ion-avatar>
+          <!-- Display each payment approver's name and approved amount -->
+          <h2>{{approval._approver.name}}</h2>
+          <p>{{displayAmountFor(approval)}}</p>
+        </ion-item>
+      </ion-col>
+      <ion-col col-4 align-self-end>
+        <ion-item class="approval-actions" *ngIf="approval" ion-item>
+          <!-- Edit button for this payment approver -->
+          <button ion-button item-right clear (click)="goToEditPaymentApprovalModal(approval)">
+            <ion-icon class="edit-btn" name="md-create"></ion-icon>
+          </button>
+          <!-- Delete button for this payment approver -->
+          <button ion-button item-right clear (click)="deletePaymentApproval(approval)">
+            <ion-icon class="delete-btn" name="ios-close-circle-outline"></ion-icon>
+          </button>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-item *ngIf="!hasPaymentApprovals">
+      <p><em>You have not added any payment approvers yet.</em></p>
+    </ion-item>
+  </ion-grid>
+
+  <div class="btn-container">
+    <button round outline color="secondary" ion-button block (click)="goToNewPaymentApprovalModal()" strong="true">
+      Add Payment Approver
+    </button>
+  </div>
+
+  <!-- Lists all the users who have authorized this user to approve payments -->
+  <p class="item-header" margin-left="">Authorized to Approve Payments</p>
+  <p margin-left="" *ngIf="!hasOwnerAuthorizations()"><em>No one has added you as a payment approver.</em></p>
+  <p margin-left="" *ngIf="hasOwnerAuthorizations()">These Horse Managers have added you as a payment approver.</p>
+  <ion-grid>
+    <ion-row *ngFor="let authorization of this.userService.ownerAuthorizations">
+      <!-- Display each authorizing owner's avatar (or default if null), name, and approved amount -->
+      <ion-item class="authorization-info" *ngIf="authorization" ion-item text-wrap>
+        <ion-avatar item-left *ngIf="authorization._owner.avatar && authorization._owner.avatar.styles">
+          <img src="{{constants.AWS_S3_BASE_URL}}/{{authorization._owner.avatar.styles.thumb_square}}" />
+        </ion-avatar>
+
+        <ion-avatar item-left *ngIf="!authorization._owner.avatar">
+          <img src="assets/images/avatar-placeholder.png" />
+        </ion-avatar>
+        <h2>{{authorization._owner.name}}</h2>
+        <p>{{displayAmountFor(authorization)}}</p>
+      </ion-item>
+    </ion-row>
+  </ion-grid>
+</ion-content>

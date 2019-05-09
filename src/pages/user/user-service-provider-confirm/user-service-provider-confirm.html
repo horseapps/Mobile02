@@ -1,0 +1,36 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Confirm
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <p class="item-header" margin-left>Service Provider</p>
+  <ion-item class="background-lt-blue" *ngIf="form.value._provider">
+    {{this.form.value._provider.name}}
+  </ion-item>
+
+  <p class="item-header" margin-left>Label</p>
+  <ion-item class="background-lt-blue" *ngIf="form.value.label !== 'other'">
+    {{this.form.value.label.toUpperCase()}}
+  </ion-item>
+  <ion-item class="background-lt-blue" *ngIf="form.value.label === 'other'">
+    {{this.form.value.customLabel.toUpperCase()}}
+  </ion-item>
+</ion-content>
+
+<ion-footer>
+  <div padding class="btn-container">
+    <button round color="secondary" ion-button block (click)="submit()" strong="true" [disabled]="((form && !form.valid) || !form.value._provider) || isSubmitting">
+      Save
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>

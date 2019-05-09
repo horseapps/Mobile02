@@ -1,0 +1,129 @@
+page-horse-form {
+  .mixed-case-header {
+    font-size: 14px;
+    color: color($colors, primary);
+  }
+
+  .header-with-button {
+    margin-left: 5px;
+
+    .remove-btn {
+      top: 15px;
+      right: 5px;
+    }
+  }
+
+  .help-block {
+    color: red;
+  }
+
+  .label {
+    color: color($colors, jumbo-grey);
+  }
+
+  .label-md {
+    margin: 13px 8px 13px 7px;
+  }
+
+  .btn-container {
+    height: 88px;
+    width: 100%;
+    border-top: solid 2px color($colors, french-grey);
+
+    .button {
+      margin-top: 20px;
+      width: 70%;
+    }
+  }
+
+  .registration-item {
+    height: 44px;
+
+    .label-md {
+      margin: 13px 8px 13px 0px;
+    }
+  }
+
+  .registration-item .item {
+    padding-left: 0px;
+  }
+
+  .remove-btn {
+    position: absolute;
+    right: 0px;
+    top: 7px;
+  }
+
+  ion-select {
+    max-width: 60%;
+  }
+
+  .add-btn {
+    position: absolute;
+    right: 6px;
+  }
+
+  .full-width {
+    width: 90% !important;
+  }
+
+  .input-cover {
+    display: none;
+  }
+
+  .item ion-icon[item-end] {
+    color: #999;
+    margin-right: 5px;
+    padding-top: 4px;
+    font-size: 2rem;
+  }
+
+  .registration-list {
+    margin-bottom: 1px;
+  }
+
+  .owner-input-div {
+    display: flex;
+
+    .empty-owner-label {
+      width: 65%;
+    }
+
+    .text-input[disabled] {
+      opacity: 1;
+    }
+
+    .item ion-avatar img {
+      overflow: visible;
+    }
+
+    .percentage {
+      position: absolute;
+      right: 33px;
+      font-size: 16px;
+    }
+
+    .text-input {
+      padding-right: 30px;
+      text-align: right;
+    }
+
+    .remove-btn {
+      font-size: 2.3rem;
+      top: 6px;
+    }
+
+    .wide-avatar {
+      align-items: center;
+      width: 71%;
+      display: flex;
+      margin-right: 0px;
+
+      .label {
+        min-height: 20px;
+        margin: 0px 0px 0px 18px;
+        display: block;
+      }
+    }
+  }
+}

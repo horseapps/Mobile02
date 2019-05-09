@@ -1,0 +1,135 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Payments
+    </ion-title>
+
+    <ion-buttons end>
+      <button ion-button icon-only (click)="goToInvoiceExport()">
+        <ion-icon name="ios-share"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+
+  <ion-toolbar *ngIf="authService.currentUser">
+    <ion-segment [(ngModel)]="chosenSegment" color="mystic" (ionChange)="segmentChanged($event)" [ngClass]="{'segment-large': authService.isServiceProvider()}">
+      <ion-segment-button value="draft" (click)="chosenSegment = 'draft'" *ngIf="authService.isServiceProvider()">
+        Drafts
+      </ion-segment-button>
+      <ion-segment-button value="outstanding" (click)="chosenSegment = 'outstanding'">
+        {{outstandingSegmentName}}
+      </ion-segment-button>
+      <ion-segment-button value="completed" (click)="chosenSegment = 'completed'">
+        {{completedSegmentName}}
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content margin-top padding-top>
+  <ion-refresher (ionRefresh)="refreshList($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- List of invoices -->
+  <ion-list *ngIf="chosenSegment !== 'draft'">
+    <button [ngClass]="{'payment-card': true,
+    'card-grey': invoiceService.hasPaymentApproverForInvoice(authService.currentUser,invoice)}"
+    *ngFor="let invoice of invoiceService.invoices"
+    ion-item
+    detail-push
+    (click)="goToInvoiceDetail(invoice)">
+      <!-- Date and total row-->
+      <ion-row>
+        <ion-col>
+          <p ion-text color="jumbo-grey" *ngIf="!invoice.paidInFullAt">{{invoiceService.displayCreatedAt(invoice) | date:'shortDate'}}</p>
+          <p ion-text color="jumbo-grey" *ngIf="invoice.paidInFullAt">{{invoice.paidInFullAt | date:'shortDate'}}</p>
+        </ion-col>
+        <ion-col>
+          <p
+            *ngIf="authService.isManager()"
+            float-right
+            [ngClass]="{'color-secondary': chosenSegment === 'outstanding',
+            'color-teal': chosenSegment === 'completed'}"
+            class="text-bold">
+            {{constants.addServiceFee(invoice.amount) + (invoice.tip || 0) | currency:'USD':true:'1.2'}}
+          </p>
+          <p
+            *ngIf="authService.isServiceProvider()"
+            float-right
+            class=" text-bold"
+            [ngClass]="{'color-secondary': chosenSegment === 'outstanding',
+            'color-teal': chosenSegment === 'completed'}">
+            {{invoice.totalForUser | currency:'USD':true:'1.2'}}
+          </p>
+        </ion-col>
+      </ion-row>
+
+      <!-- Service provider or horse trainer name -->
+      <ion-row>
+        <ion-col>
+          <p *ngIf="authService.isServiceProvider()" class="text-bold" ion-text color="dark">{{invoice._trainer.name}}</p>
+          <p *ngIf="authService.isManager()" class="text-bold" ion-text color="dark">{{invoice._serviceProvider.name}}</p>
+        </ion-col>
+      </ion-row>
+
+      <!-- Horse avatar -->
+      <ion-item ion-item detail-none class="horse-item">
+        <ion-avatar item-start *ngIf="invoice._horse">
+          <img src="{{horseService.getAvatarUrlForHorse(invoice._horse)}}">
+        </ion-avatar>
+        <ion-avatar item-start *ngIf="!invoice._horse">
+          <img src="assets/images/horse-avatar-placeholder.png" />
+        </ion-avatar>
+        <p *ngIf="invoice._horse" ion-text color="dark" class="horse-name">{{invoice._horse.barnName}}</p>
+        <p *ngIf="!invoice._horse && invoice.fromDataMigration" ion-text color="dark" class="horse-name">Multiple Horses</p>
+        <p *ngIf="!invoice._horse && !invoice.fromDataMigration" ion-text color="dark" class="horse-name">Horse has been deleted</p>
+
+        <!-- Number of services -->
+        <p class="service-count margin-bottom-1x">{{invoice.serviceCount}} service<span *ngIf="invoice.serviceCount !== 1">s</span> provided</p>
+
+        <!-- Date range of services -->
+        <p *ngIf="!invoiceService.sameStartEndDate(invoice)" ion-text color="jumbo-grey">{{invoice.minDate | date: 'shortDate'}} - {{invoice.maxDate | date: 'shortDate'}}</p>
+        <p *ngIf="invoiceService.sameStartEndDate(invoice)" ion-text color="jumbo-grey">{{invoice._requests[0].date | date: 'shortDate'}}</p>
+      </ion-item>
+    </button>
+
+    <!-- Blank state -->
+    <ion-item *ngIf="!invoiceService.invoices.length && !isLoading && !isRefreshing" text-wrap class="blank-state border-btm-none">
+      <div text-center>
+        <ion-icon name="horseicon"></ion-icon>
+        <p>No invoices available at this time.</p>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <!-- List of requests not yet added to an invoice -->
+  <ion-list *ngIf="chosenSegment === 'draft'">
+    <page-invoice-draft-card [groupedRequests]="requestService.groupedRequests"></page-invoice-draft-card>
+
+    <!-- Blank state -->
+    <ion-item *ngIf="!requestService.groupedRequests.length && !isLoading && !isRefreshing" text-wrap class="blank-state border-btm-none">
+      <div text-center>
+        <ion-icon name="horseicon"></ion-icon>
+        <p>No invoices available at this time.</p>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <ion-infinite-scroll (ionInfinite)="findAll($event)" *ngIf="canLoadMore && !isRefreshing">
+    <ion-infinite-scroll-content loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+</ion-content>
+
+<ion-footer *ngIf="authService.isServiceProvider() && chosenSegment === 'draft'">
+  <div padding class="btn-container">
+    <button ion-button block round color="secondary" class="solid-round" (click)="goToCustomInvoiceNew()">
+      Create Invoice
+    </button>
+  </div>
+</ion-footer>

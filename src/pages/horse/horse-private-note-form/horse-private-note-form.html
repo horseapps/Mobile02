@@ -1,0 +1,40 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Private Note
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <form novalidate [formGroup]="form" class="main-form">
+      <p class="item-header" margin-left>My notes for {{horseService.horse.barnName}}</p>
+      <ion-item class="private-note-holder background-lt-blue">
+        <ion-textarea
+        class="note-input"
+        autocomplete="on"
+        autocorrect="on"
+        fz-elastic
+        rows="5"
+        maxlength="300"
+        formControlName="privateNote"
+        type="text"
+        (keyup)="maxLength()"
+        placeholder="(Add your notes on this horse's temperament, needs, quirks, etc. No one else can view your private notes.)">
+        </ion-textarea>
+      </ion-item>
+      <div class="btn-container">
+        <button round outline color="secondary" ion-button block (click)="updatePrivateNotes()" strong="true" [disabled]="!form.valid">
+          Save
+        </button>
+      </div>
+    </form>
+  </ion-list>
+
+</ion-content>

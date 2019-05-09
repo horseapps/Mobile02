@@ -1,0 +1,53 @@
+page-user-public-profile {
+  .content {
+    background-color: color($colors, light);
+  }
+
+  .header .toolbar-background {
+    border: none;
+  }
+
+  .header-md::after {
+    background-image: none;
+  }
+
+  .loading-item {
+    border: none !important;
+  }
+
+  .avatar-container {
+    height: 85px;
+    background-color: map-get($colors, primary);
+    position: relative;
+    border-bottom: solid 2px color($colors, french-grey);
+  }
+
+  .avatar {
+    width: 38%;
+    margin: auto;
+    position: relative;
+    border-radius: 50% !important;
+    top: 6px;
+    background: #FEFEFE;
+    overflow: hidden;
+    border: solid 2px color($colors, french-grey);
+  }
+
+  .rates {
+    height: 100vh;
+    margin-top: 48%;
+    background-color: color($colors, lt-blue);
+  }
+
+  .item-header {
+    margin-left: 6px;
+  }
+
+  .row {
+    height: 30px;
+  }
+
+  .location-text {
+    margin: 0 23%;
+  }
+}

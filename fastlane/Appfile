@@ -1,0 +1,7 @@
+app_identifier "com.HorseLinc" # The bundle identifier of your app
+apple_id "horselinc@snapmobile.io" # Your Apple email address
+
+team_id "AQHLVUV78P" # Developer Portal Team ID
+
+# you can even provide different app identifiers, Apple IDs and team names per lane:
+# More information: https://docs.fastlane.tools/advanced/#appfile

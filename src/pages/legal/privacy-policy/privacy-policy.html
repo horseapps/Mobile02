@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button clear (click)="dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content class="authentication legal-content">
+  <ion-item *ngIf="isLoading" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <ion-row margin>
+    <div [innerHTML]="privacyPolicy"></div>
+      <button
+        *ngIf="!isLoading"
+        ion-button
+        block
+        round
+        margin-top
+        color="secondary"
+        class="solid-round"
+        (click)="dismiss()">
+        Close
+      </button>
+  </ion-row>
+</ion-content>

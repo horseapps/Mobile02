@@ -1,0 +1,33 @@
+<ion-item class="upload-avatar-item">
+  <ion-avatar item-left class="avatar">
+    <div class="img-container">
+      <img
+        *ngIf="forObject && forObject.avatar && !fileUri"
+        src="{{constants.AWS_S3_BASE_URL}}/{{forObject.avatar.url}}" />
+
+      <img
+        *ngIf="(forObject && forObject.avatar && fileUri) || (forObject && !forObject.avatar && fileUri)"
+        src="{{fileUri}}" />
+
+      <img
+        *ngIf="forObject && !forObject.avatar && !fileUri"
+        src="assets/images/img-upload-placeholder.png" />
+    </div>
+
+    <div class="progress-bar" text-center *ngIf="isUploading">
+      <progress-bar *ngIf="fileProgress" [progress]=fileProgress></progress-bar>
+    </div>
+  </ion-avatar>
+
+  <div class="upload-div">
+    <camera-upload
+      [(forFile)]="forObject.avatar"
+      [(isUploading)]="isUploading"
+      [useTemplate]="false"
+      [(fileUri)]="fileUri"
+      [(fileStatus)]="fileStatus"
+      [(fileProgress)]="fileProgress">
+      Select image
+    </camera-upload>
+  </div>
+</ion-item>

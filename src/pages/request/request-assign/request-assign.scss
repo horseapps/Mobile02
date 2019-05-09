@@ -1,0 +1,110 @@
+page-request-assign {
+  .list-ios > .item-block:last-child {
+    border-bottom: none;
+  }
+
+  ion-select {
+    max-width: 60%;
+  }
+
+  .service-item {
+    height: 65px !important;
+
+    .label {
+      color: color($colors, dark) !important;
+    }
+
+    .service-name {
+      font-size: 1.25em;
+
+      .text-input-md,
+      .text-input-ios {
+        margin: 5px 0px 0px !important;
+      }
+    }
+
+    .rate-label,
+    .quantity-label {
+      color: color($colors, primary) !important;
+      font-size: 1.1em;
+      margin-bottom: 5px;
+      position: relative;
+    }
+
+    .rate-input {
+      display: inline;
+      position: relative;
+      top: 0px;
+
+      .text-input {
+        margin: 0px 0px 10px;
+      }
+    }
+
+    .quantity-input {
+      display: inline;
+      position: relative;
+      top: 5px;
+
+      .text-input {
+        margin: 0px 0px 10px;
+      }
+    }
+
+    ion-grid,
+    ion-row,
+    ion-col {
+      padding-top: 0px;
+      padding-bottom: 0px;
+    }
+
+    ion-label {
+      margin-top: 5px;
+      margin-bottom: 0px;
+    }
+
+    .remove-btn {
+      font-size: 1.5em;
+      position: relative;
+      left: 90px;
+      top: 25px;
+    }
+  }
+
+  .show-input {
+    .text-input {
+      text-transform: capitalize;
+    }
+  }
+
+  .service-card {
+    box-shadow: none;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .add-item {
+    .label-md {
+      margin-left: 0;
+    }
+  }
+
+  .remove-btn {
+    position: relative;
+    right: 0px;
+    top: 13%;
+  }
+
+  .add-btn {
+    position: relative;
+    right: 5px;
+  }
+
+  .text-input[disabled] {
+    opacity: 1;
+  }
+
+  .input-cover {
+    display: none;
+  }
+}

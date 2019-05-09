@@ -1,0 +1,35 @@
+page-calendar {
+  ion-content {
+    text-align: center;
+  }
+
+  .event-detail-container {
+    display: none;
+  }
+
+  calendar,
+  .month-display,
+  .month-arrow {
+    position: relative;
+    top: 20vh;
+    text-align: center;
+  }
+
+  .monthview-selected {
+    background-color: color($colors, primary) !important;
+  }
+
+  .month-display,
+  .submit {
+    display: inline-block;
+  }
+
+  div.monthview-container {
+    height: 500px;
+  }
+
+  .submit {
+    position: relative;
+    bottom: 25vh;
+  }
+}

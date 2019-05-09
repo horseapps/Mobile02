@@ -1,0 +1,27 @@
+page-search {
+  .content {
+    background-color: color($colors, light);
+  }
+
+  .item {
+    border-bottom: solid 1px color($colors, french-grey);
+  }
+
+  .invite-div {
+    width: 90%;
+    margin: 60px auto;
+    text-align: center;
+
+    p {
+      font-size: 17px;
+    }
+  }
+
+  h2 {
+    min-height: 22px;
+  }
+
+  .button-clear {
+    color: color($colors, jumbo-grey);
+  }
+}

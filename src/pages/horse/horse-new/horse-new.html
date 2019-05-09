@@ -1,0 +1,20 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Create Horse Profile
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content #content>
+  <ion-list>
+    <page-horse-form [contentTemplateVariable]="content" [submitFunction]="submitFunction"></page-horse-form>
+  </ion-list>
+
+</ion-content>

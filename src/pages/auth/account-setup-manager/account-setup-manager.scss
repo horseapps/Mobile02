@@ -1,0 +1,25 @@
+page-account-setup-manager {
+  .btn-container {
+    height: 88px;
+    border-top: solid 2px color($colors, french-grey);
+
+    .button {
+      margin-top: 20px;
+    }
+  }
+
+  .solid-round {
+    box-shadow: none;
+  }
+
+  .padding-300 {
+    .scroll-content {
+      padding-bottom: 300px !important;
+    }
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
+

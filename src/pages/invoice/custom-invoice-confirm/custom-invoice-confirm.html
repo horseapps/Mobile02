@@ -1,0 +1,142 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Confirm
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list class="invoice-list">
+    <ng-container *ngIf="form">
+      <!-- Horse -->
+      <p class="item-header" margin-left>Horse</p>
+      <ion-item *ngIf="requestService.request._horse.barnName">
+        {{requestService.request._horse.barnName}} <em>"{{requestService.request._horse.showName}}"</em>
+      </ion-item>
+
+      <ng-container *ngIf="requestService.request._horse._trainer">
+        <p class="item-header" margin-left>Trainer</p>
+        <ion-item>
+          {{requestService.request._horse._trainer?.name}}
+        </ion-item>
+      </ng-container>
+
+      <!-- Owner -->
+      <ng-container *ngIf="requestService.request._horse._owners && requestService.request._horse._owners.length">
+        <p class="item-header" margin-left>Owner(s)</p>
+        <ion-item *ngIf="requestService.request._horse._owners.length === 1">
+          {{requestService.request._horse._owners[0]._user.name}}
+        </ion-item>
+
+        <ion-item *ngIf="requestService.request._horse._owners.length > 1">
+          {{joinOwnerNames(requestService.request._horse._owners)}}
+        </ion-item>
+      </ng-container>
+
+      <!-- Leasee -->
+      <ng-container *ngIf="requestService.request._horse._leasedTo">
+        <p class="item-header" margin-left>Leased To</p>
+        <ion-item>
+          {{requestService.request._horse._leasedTo?.name}}
+        </ion-item>
+      </ng-container>
+
+      <!-- Date -->
+      <p class="item-header" margin-left>Date</p>
+      <ion-item *ngIf="requestService.request.date">
+        {{requestService.request.date | date:'longDate'}}
+      </ion-item>
+
+      <!-- Display the show if present -->
+      <div *ngIf="requestService.request._show && requestService.request._show.name">
+        <p class="item-header" margin-left>Show</p>
+        <ion-item class="text-capitalize">
+          {{requestService.request._show.name}}
+        </ion-item>
+      </div>
+
+      <!-- Competition class -->
+      <div *ngIf="requestService.request.competitionClass">
+        <p class="item-header" margin-left>Class</p>
+        <ion-item *ngIf="requestService.request.competitionClass" class="text-capitalize">
+          {{requestService.request.competitionClass}}
+        </ion-item>
+      </div>
+
+      <!-- Services -->
+      <p class="item-header" margin-left>Services</p>
+      <ion-item *ngIf="requestService.request.services.length" class="border-btm">
+        <ion-row *ngFor="let service of requestService.request.services">
+          <ion-col class="padding-left-none">
+            {{service.service}} (x{{service.quantity || 1}})
+          </ion-col>
+          <ion-col text-right *ngIf="authService.isServiceProvider()">
+            {{(service.rate * (+service.quantity || 1)) | currency:'USD':true:'1.2'}}
+          </ion-col>
+
+          <ion-col text-right *ngIf="authService.isManager()">
+            {{constants.addServiceFee(service.rate * (+service.quantity || 1)) | currency:'USD':true:'1.2'}}
+          </ion-col>
+        </ion-row>
+      </ion-item>
+
+      <!-- Total -->
+      <ion-item class="border-btm-none">
+        <span text-left class="item-header total" text-color="primary">TOTAL</span>
+        <ion-row>
+          <ion-col class="padding-left-none">
+            <p text-left text-wrap>{{getServiceCount(requestService.request.services)}} Service{{getServiceCount(requestService.request.services) === 1 ? "" : "s"}}</p>
+          </ion-col>
+          <ion-col text-right *ngIf="authService.isServiceProvider()">
+            {{requestService.request.total | currency:'USD':true:'1.2'}}
+          </ion-col>
+
+          <ion-col text-right *ngIf="authService.isManager()">
+            {{constants.addServiceFee(requestService.request.total) | currency:'USD':true:'1.2'}}
+          </ion-col>
+        </ion-row>
+      </ion-item>
+
+      <!-- Display any notes for this custom invoice -->
+      <div *ngIf="requestService.request.instructions">
+        <p class="item-header" margin-left>Notes for Horse Managers</p>
+        <ion-item class="border-btm-none">
+          <p text-left text-wrap>{{requestService.request.instructions}}</p>
+        </ion-item>
+      </div>
+    </ng-container>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <!-- Total -->
+  <ion-grid class="border-top border-btm total-grid">
+    <ion-row>
+      <ion-col text-left>
+        TOTAL
+      </ion-col>
+      <ion-col text-right padding-right>
+        {{requestService.request.total | currency:'USD':true:'1.2'}}
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- Buttons -->
+  <div padding margin-left margin-right>
+    <button round color="secondary" ion-button block (click)="submit(true)" strong="true" [disabled]="((form && !form.valid) || !requestService.request.services.length) || isSubmitting" margin-bottom>
+      Confirm & Submit Invoice
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+
+    <button round color="secondary" outline ion-button block (click)="submit(false)" strong="true" [disabled]="((form && !form.valid) || !requestService.request.services.length) || isSubmitting">
+      Save to Drafts
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>

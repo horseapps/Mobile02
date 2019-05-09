@@ -1,0 +1,38 @@
+page-user-edit {
+  .footer {
+    background-color: color($colors, lt-blue);
+  }
+
+  .btn-container {
+    width: 100%;
+    border-top: solid 2px color($colors, french-grey);
+
+    .button {
+      width: 70%;
+    }
+  }
+
+  .add-item {
+    .label-md {
+      margin-left: 8px;
+    }
+  }
+
+  .add-btn {
+    position: absolute;
+    right: 12px;
+  }
+
+  .service-item {
+    min-height: 44px;
+  }
+
+  .input-cover {
+    width: 85%;
+    display: none;
+  }
+
+  .remove-btn {
+    margin-right: 0px !important;
+  }
+}

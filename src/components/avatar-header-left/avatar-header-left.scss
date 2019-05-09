@@ -1,0 +1,36 @@
+avatar-header-left {
+  .item {
+    background-color: color($colors, primary);
+    min-height: 130px;
+    border-bottom: solid 1px color($colors, french-grey);
+
+    .avatar {
+      width: 30%;
+    }
+
+    // Image container for avatar
+    .img-container {
+      border: solid 2px color($colors, light);
+      border-radius: 50%;
+      overflow: hidden;
+      width: 100px;
+      height: 100px;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+
+    h2 {
+      font-size: 18px;
+      font-family: $font-family-bold;
+    }
+
+    p {
+      font-size: 16px;
+    }
+  }
+}
+

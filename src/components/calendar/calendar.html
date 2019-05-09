@@ -1,0 +1,32 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Select Date
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <button ion-button icon-only clear float-left class="month-arrow" (click)="previousMonth()">
+    <ion-icon name="arrow-back"></ion-icon>
+  </button>
+  <button ion-button icon-only clear float-right class="month-arrow" (click)="nextMonth()">
+    <ion-icon name="arrow-forward"></ion-icon>
+  </button>
+  <h3 class="month-display">{{this.currentMonth}} {{this.currentYear}}</h3>
+  <calendar #calendarElement
+    [calendarMode]="calendar.mode"
+    [currentDate]="calendar.currentDate"
+    [queryMode]="calendar.queryMode"
+    (onCurrentDateChanged)="captureDate($event)"
+    step="30">
+  </calendar>
+  <button ion-button class="submit" (click)="setDateAndDismiss(selectedDate)">
+    OK
+  </button>  
+</ion-content>

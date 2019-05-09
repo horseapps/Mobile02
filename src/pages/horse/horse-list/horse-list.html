@@ -1,0 +1,151 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>
+      Horses<span *ngIf="authService.isServiceProvider()"> (by Manager)</span>
+    </ion-title>
+
+    <ion-buttons end>
+      <!-- Only managers can filter their horses -->
+      <button *ngIf="authService.isManager()" ion-button icon-only (click)="openFilter()">
+        <ion-icon name="options"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+	<ion-refresher (ionRefresh)="refreshList($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+  	<ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Upcoming horse list -->
+  <div margin-right margin-left margin-top class="card-list list  margin-bottom-none" *ngIf="!filterSort && authService.isManager()">
+    <ion-item *ngFor="let horse of horsesUpcomingRequests" margin-bottom class="highlighted-item">
+      <button *ngIf="horse" ion-item text-wrap [navPush]="horseDetailPage" [navParams]="{ id: horse._id }">
+        <ion-avatar item-left *ngIf="horse.avatar && horse.avatar.styles">
+          <img src="{{constants.AWS_S3_BASE_URL}}/{{horse.avatar.styles.thumb_square}}" />
+        </ion-avatar>
+
+        <ion-avatar item-left *ngIf="!horse.avatar">
+          <img src="assets/images/horse-avatar-placeholder.png" />
+        </ion-avatar>
+
+        <h2>{{horse.barnName}}</h2>
+        <p *ngIf="horse._trainer">{{horse._trainer.name}} <span *ngIf="horse._trainer.barn">({{horse._trainer.barn}})</span></p>
+      </button>
+      <p ion-text color="teal" *ngIf="horse && horse.nextBraiding">Next service scheduled <span class="text-bold">{{horse.nextBraiding | date:'EEE, MMM d'}}</span></p>
+    </ion-item>
+  </div>
+
+  <!-- All horses are listed individually when viewing as a horse manager -->
+  <ion-list *ngIf="authService.isManager() && horseService.horses" margin-right margin-left margin-top class="card-list">
+    <ng-container *ngFor="let horse of horseService.horses">
+      <ion-item margin-bottom *ngIf="noUpcomingService(horse) || filterSort" [ngClass]="{'highlighted-item' : (!noUpcomingService(horse))}">
+        <button ion-item text-wrap [navPush]="horseDetailPage" [navParams]="{ id: horse._id }">
+          <ion-avatar item-left *ngIf="horse.avatar && horse.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{horse.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+
+          <ion-avatar item-left *ngIf="!horse.avatar">
+            <img src="assets/images/horse-avatar-placeholder.png" />
+          </ion-avatar>
+
+          <h2>{{horse.barnName}}</h2>
+          <p *ngIf="horse._trainer">{{horse._trainer.name}} ({{horse._trainer.barn}})</p>
+        </button>
+        <p ion-text color="teal" *ngIf="!noUpcomingService(horse)">Next service scheduled <span class="text-bold">{{getServiceDate(horse._id) | date:'EEE, MMM d'}}</span></p>
+      </ion-item>
+    </ng-container>
+
+    <ion-item *ngIf="(horsesUpcomingRequests && !horsesUpcomingRequests.length) && !horseService.horses.length && !isLoading && !isRefreshing" text-wrap class="blank-state">
+      <div text-center>
+        <ion-icon name="horseicon"></ion-icon>
+        <p>No horses available at this time.</p>
+      </div>
+    </ion-item>
+  </ion-list>
+  <!-- Infinite scroll to populate individually listed horses via pagination -->
+	<ion-infinite-scroll (ionInfinite)="findAll($event)" *ngIf="canLoadMore && !isRefreshing && authService.isManager()">
+    <ion-infinite-scroll-content
+      loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <!-- All horses are grouped by horse manager when viewed as a service provider -->
+  <ion-list *ngIf="authService.isServiceProvider()" margin-right margin-left margin-top class="card-list">
+    <ng-container *ngFor="let horseGroup of horseService.horses; let i=index">
+      <div tappable (click)="toggleGroup(i)">
+        <ion-item class="group-header">
+          <ion-avatar item-left *ngIf="horseGroup._manager.avatar && horseGroup._manager.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{horseGroup._manager.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+          
+          <ion-avatar item-left *ngIf="!horseGroup._manager.avatar">
+            <img src="assets/images/avatar-placeholder.png" />
+          </ion-avatar>
+          <div class="item-flex-div">
+            <span>{{horseGroup._manager.name}}</span>
+            <ion-icon [name]="isGroupShown(i) ? 'arrow-dropdown' : 'arrow-dropright'"></ion-icon>
+          </div>
+        </ion-item>
+      </div>
+
+      <ion-list *ngIf="isGroupShown(i)">
+        <div margin-left class="horse-card" *ngFor="let horse of horseGroup.horses">
+          <ion-item *ngIf="noUpcomingService(horse) || filterSort" [ngClass]="{'highlighted-item' : (!noUpcomingService(horse))}">
+            <button ion-item text-wrap [navPush]="horseDetailPage" [navParams]="{ id: horse._id }">
+              <ion-avatar item-left *ngIf="horse.avatar && horse.avatar.styles">
+                <img src="{{constants.AWS_S3_BASE_URL}}/{{horse.avatar.styles.thumb_square}}" />
+              </ion-avatar>
+      
+              <ion-avatar item-left *ngIf="!horse.avatar">
+                <img src="assets/images/horse-avatar-placeholder.png" />
+              </ion-avatar>
+      
+              <h2>{{horse.barnName}}</h2>
+              <p><em>"{{horse.showName}}"</em></p>
+              <p *ngIf="listedHorseHasTrainer(horse)">Trainer: {{horse._trainer.name}}</p>
+              <p *ngIf="listedHorseHasBarn(horse)">({{horse._trainer.barn}})</p>
+            </button>
+            <p ion-text color="teal" *ngIf="!noUpcomingService(horse)">Next service scheduled
+              <span class="text-bold">{{getServiceDate(horse._id) | date:'EEE, MMM d'}}</span>
+            </p>
+          </ion-item>
+        </div>
+      </ion-list>
+    </ng-container>
+  
+    <ion-item *ngIf="(!horseService.horses || !horseService.horses.length) && !isLoading && !isRefreshing" text-wrap class="blank-state">
+      <div text-center>
+        <ion-icon name="horseicon"></ion-icon>
+        <p>No horses available at this time.</p>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <!-- Refresher for paginated horses -->
+  <ion-infinite-scroll (ionInfinite)="findAll($event)" *ngIf="canLoadMore && !isRefreshing">
+    <ion-infinite-scroll-content loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+</ion-content>
+
+<ion-footer>
+  <div *ngIf="authService.isManager()" padding class="btn-container">
+    <button
+      ion-button
+      block
+      round
+      color="secondary"
+      class="solid-round"
+      (click)="goToHorseNew()">
+      New Horse Profile
+    </button>
+  </div>
+</ion-footer>

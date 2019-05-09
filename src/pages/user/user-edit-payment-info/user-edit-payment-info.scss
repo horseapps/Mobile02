@@ -1,0 +1,55 @@
+page-user-edit-payment-info {
+  ion-label {
+    font-size: 16px !important;
+    flex: 1 0 100px !important;
+  }
+
+  .form-control-error {
+    padding: 0px 0px 0px 6px;
+  }
+
+  .list {
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+  }
+
+  .item {
+    border-top: solid 1px #C8C7CC;
+  }
+
+  .btn-container {
+    height: 88px;
+    width: 80%;
+    margin: 0 auto;
+
+    button {
+      margin-top: 15px;
+    }
+  }
+
+  ion-grid,
+  ion-row {
+    margin-top: 0px !important;
+  }
+
+  .approval-info,
+  .approval-actions,
+  .authorization-info {
+    border-top: none;
+    background-color: color($colors, lt-blue);
+  }
+
+  .approval-actions {
+    margin-bottom: 15px;
+  }
+
+  .delete-btn {
+    color: color($colors, danger);
+    font-size: 25px;
+  }
+
+  .edit-btn {
+    color: color($colors, teal);
+    font-size: 25px;
+  }
+}

@@ -1,0 +1,16 @@
+<ion-header>
+    <ion-navbar>
+        <ion-buttons start>
+            <button ion-button clear (click)="viewCtrl.dismiss()">
+                <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+            </button>
+        </ion-buttons>
+        <ion-title>Add Payment Approver</ion-title>
+    </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <page-user-payment-approval-form [submitFunction]="submitFunction" ></page-user-payment-approval-form>
+  </ion-list>
+</ion-content>

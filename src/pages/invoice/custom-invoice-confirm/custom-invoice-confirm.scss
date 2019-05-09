@@ -1,0 +1,32 @@
+page-custom-invoice-confirm {
+  .content {
+    background-color: color($colors, light);
+  }
+
+  .invoice-list {
+    ion-item {
+      border-bottom: none !important;
+      background-color: color($colors, light);
+      margin-top: 0em;
+      margin-bottom: 0em;
+    }
+  }
+
+  .total {
+    color: color($colors, primary);
+  }
+
+  .text-capitalize {
+    text-transform: capitalize;
+  }
+
+  .total-grid .col {
+    font-size: 16px;
+    color: color($colors, dark);
+    font-family: $font-family-bold;
+  }
+
+  .footer-md::before {
+    background-image: none;
+  }
+}

@@ -1,0 +1,115 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons end (click)="goToProfileEdit()">
+      <button ion-button icon-only>
+        <ion-icon name="md-create"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher (ionRefresh)="findMe($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Avatar header -->
+  <avatar-header-left *ngIf="authService.currentUser" [object]="authService.currentUser" [type]="'horse manager'"></avatar-header-left>
+
+  <!-- Service Providers see their services list at the top of their profile -->
+  <ng-container *ngIf="authService.currentUser && authService.isServiceProvider()">
+    <p class="item-header margin-bottom-none" margin-top margin-left>My Rates</p>
+    <ion-grid margin-bottom>
+      <ion-row *ngFor="let service of authService.currentUser.services">
+        <ion-col align-self-center>
+          {{service.service}}
+        </ion-col>
+
+        <ion-col text-right align-self-center>
+          {{service.rate | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-container>
+
+  <!-- Horse Managers see their grouped service providers at the top of their profile -->
+  <ng-container *ngIf="authService.currentUser && authService.isManager()">
+    <p class="item-header margin-bottom-none" margin-top margin-left>My Service Providers</p>
+    <ion-grid>
+      <!-- Each group gets its own section with a label and its nested providers -->
+      <div *ngFor="let providerGroup of this.userService.groupedServiceProviders">
+
+        <!-- Displayed label for this group depends on whether it's a custom label -->
+        <p class="item-header" margin-left *ngIf="providerGroup[0].label !== 'other'">{{providerGroup[0].label}}</p>
+        <p class="item-header" margin-left *ngIf="providerGroup[0].label === 'other'">{{providerGroup[0].customLabel}}</p>
+
+        <!-- Within this group, list each service provider with avatar and delete button -->
+        <ion-row *ngFor="let providerInfo of providerGroup">
+          <ion-col class="info-column" col-8 align-self-end>
+            <ion-item class="provider-info" *ngIf="providerInfo" text-wrap>
+              <ion-avatar item-left *ngIf="providerInfo._provider.avatar && providerInfo._provider.avatar.styles">
+                <img src="{{constants.AWS_S3_BASE_URL}}/{{providerInfo._provider.avatar.styles.thumb_square}}" />
+              </ion-avatar>
+
+              <ion-avatar item-left *ngIf="!providerInfo._provider.avatar">
+                <img src="assets/images/avatar-placeholder.png" />
+              </ion-avatar>
+              <h2>{{providerInfo._provider.name}}</h2>
+            </ion-item>
+          </ion-col>
+          <ion-col col-4 align-self-end>
+            <ion-item class="provider-actions" *ngIf="providerInfo" ion-item>
+              <!-- Delete button for this payment approver -->
+              <button ion-button item-right clear (click)="deleteServiceProvider(providerInfo)">
+                <ion-icon class="delete-btn" name="ios-close-circle-outline"></ion-icon>
+              </button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+
+      </div>
+    </ion-grid>
+
+    <div class="btn-container">
+      <button round outline color="secondary" ion-button block (click)="goToNewServiceProvider()" strong="true">
+        Add Service Provider
+      </button>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="authService.currentUser">
+    <button *ngIf="authService.isServiceProvider()" ion-item (click)="goToAppLog()">
+      App Log
+    </button>
+
+    <button ion-item (click)="editPaymentInformation()">
+      <span *ngIf="!authService.hasPaymentSetup()" class="add-payment">
+        <i class="fa fa-exclamation-circle"></i> Add Payment Information
+      </span>
+      <span *ngIf="authService.hasPaymentSetup()">
+        Edit Payment Information
+      </span>
+    </button>
+
+    <button ion-item (click)="openContactAlert()">
+      Contact HorseLinc
+    </button>
+
+    <button ion-item (click)="openTermsModal()">
+      Terms & Conditions
+    </button>
+
+    <button ion-item (click)="openPrivacyPolicyModal()">
+      Privacy Policy
+    </button>
+
+    <button ion-item (click)="logout()">
+      Log Out
+    </button>
+  </ng-container>
+
+</ion-content>

@@ -1,0 +1,44 @@
+<ng-container *ngFor="let serviceProviderGroup of groupedRequests">
+  <button class="payment-card" *ngFor="let horseGroup of serviceProviderGroup[1]" ion-item detail-push (click)="goToDraftDetail(horseGroup)">
+    <!-- Date and total row-->
+    <ion-row>
+      <ion-col>
+        <p ion-text color="jumbo-grey">{{horseGroup[0].maxDate | date:'shortDate'}}</p>
+      </ion-col>
+      <ion-col>
+        <p
+          ion-text
+          color="lt-burgundy"
+          float-right
+          class="text-bold">
+          {{horseGroup[0].total | currency:'USD':true:'1.2'}}
+        </p>
+      </ion-col>
+    </ion-row>
+
+    <!-- Service provider or horse trainer name -->
+    <ion-row>
+      <ion-col>
+        <p *ngIf="authService.isServiceProvider()" class="text-bold" ion-text color="dark">{{horseGroup[1][0]._trainer.name}}</p>
+      </ion-col>
+    </ion-row>
+
+    <!-- Horse avatar -->
+    <ion-item ion-item detail-none class="horse-item">
+      <ion-avatar item-start>
+        <img src="{{horseService.getAvatarUrlForHorse(horseGroup[1][0]._horse)}}">
+      </ion-avatar>
+      <p ion-text color="dark" class="horse-name">{{horseGroup[1][0]._horse.barnName}}</p>
+      <ng-container *ngIf="!horseGroup[1][0]._horse">
+        <p class="font-sm text-italic" ion-text color="dark">Horse has been deleted.</p>
+      </ng-container>
+
+      <!-- Number of services -->
+      <p class="service-count margin-bottom-1x">{{horseGroup[0].serviceCount}} service<span *ngIf="horseGroup[0].serviceCount !== 1">s</span> provided</p>
+
+      <!-- Date range of services -->
+      <p *ngIf="horseGroup[1].length > 1" ion-text color="jumbo-grey">{{horseGroup[0].minDate | date: 'shortDate'}} - {{horseGroup[0].maxDate | date: 'shortDate'}}</p>
+      <p *ngIf="horseGroup[1].length <= 1" ion-text color="jumbo-grey">{{horseGroup[0].maxDate | date: 'shortDate'}}</p>
+    </ion-item>
+  </button>
+</ng-container>

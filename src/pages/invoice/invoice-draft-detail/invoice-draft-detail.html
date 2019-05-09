@@ -1,0 +1,147 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Invoice Draft
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <!-- Horse trainer -->
+  <ion-item class="border-btm" (click)="goToPublicProfile(requestGroup[1][0]._trainer, false)" *ngIf="requestGroup[1][0]._trainer">
+    <ion-avatar item-start>
+      <img src="{{userService.getAvatarUrlForUser(requestGroup[1][0]._trainer)}}">
+    </ion-avatar>
+    <h2>{{requestGroup[1][0]._trainer.name}}</h2>
+  </ion-item>
+
+  <!-- Horse -->
+  <ion-item color="lt-blue"  *ngIf="requestGroup[1][0]._horse">
+    <ion-avatar item-start (click)="goToPublicHorseProfile(requestGroup[1][0]._horse)">
+      <img src="{{horseService.getAvatarUrlForHorse(requestGroup[1][0]._horse)}}">
+    </ion-avatar>
+    <p class="text-bold font-14">{{requestGroup[1][0]._horse.barnName}}</p>
+    <p class="font-12">"{{requestGroup[1][0]._horse.showName}}"</p>
+  </ion-item>
+
+  <ion-item color="lt-blue"  *ngIf="!requestGroup[1][0]._horse">
+    <p class="font-sm text-italic">Horse has been deleted.</p>
+  </ion-item>
+
+  <!-- Requests -->
+  <ion-item color="lt-blue"  *ngFor="let request of requestGroup[1]; let i=index" [ngClass]="{'zero-top-margin-item': invoiceService.previousRequestHasSameDate(requestGroup[1], request, i)}">
+    <p class="font-12" ion-text color="manatee" *ngIf="!invoiceService.previousRequestHasSameDate(requestGroup[1], request, i)">{{request.date | date: 'shortDate'}}</p>
+    <p class="text-uppercase font-12" ion-text color="manatee" *ngIf="request._show && !invoiceService.previousRequestHasSameDate(requestGroup[1], request, i)">{{request._show.name}}</p>
+    <ion-grid class="padding-left-none service-grid">
+      <ion-row *ngFor="let service of request.services">
+        <ion-col class="padding-left-none">
+          <p>{{service.service}} (x{{service.quantity || 1}})</p>
+          <p *ngIf="request._reassignedTo && isMainServiceProvider()" class="font-12">Completed By {{request._reassignedTo.name}}</p>
+        </ion-col>
+        <ion-col text-right>
+          <p>{{(service.rate * (service.quantity || 1)) | currency:'USD':true:'1.2'}}</p>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <div *ngIf="request.instructions">
+      <p class="text-uppercase font-12">NOTES</p>
+      <p class="font-12 text-italic">{{request.instructions}}</p>
+    </div>
+  </ion-item>
+
+  <!-- Subtotal -->
+  <ion-item color="lt-blue">
+    <ion-grid class="padding-left-none service-grid">
+      <ion-row>
+        <ion-col class="padding-left-none text-bold">
+          Subtotal
+        </ion-col>
+        <ion-col text-right class="text-bold">
+          {{invoiceService.calculateTotal(requestGroup[1]) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-item>
+</ion-content>
+
+<ion-footer class="border-top invoice-footer">
+  <div>
+    <ion-item>
+      <ion-row>
+        <ion-col class="font-16 padding-left-none text-bold" *ngIf="isMainServiceProvider()">
+          Invoice Total
+        </ion-col>
+        <ion-col col-9 class="font-16 padding-left-none text-bold" *ngIf="!isMainServiceProvider()">
+          Your Apportionment
+        </ion-col>
+        <ion-col text-right class="font-16 text-bold">
+          {{invoiceService.calculateTotal(requestGroup[1]) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+
+      <ion-row *ngIf="isMainServiceProvider() && hasReassignees()" margin-top>
+        <ion-col col-9 class="font-16 padding-left-none text-bold">
+          Your Apportionment
+        </ion-col>
+        <ion-col text-right class="font-16 text-bold">
+          {{mainProviderTotal | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-item>
+
+    <!-- Submission/edit buttons -->
+    <ion-grid class="margin-top-3x" no-padding>
+      <ion-row justify-content-center>
+        <ion-col col-11>
+          <ng-container *ngIf="isMainServiceProvider()">
+            <button
+              (click)="goToEditPage()"
+              margin-bottom
+              color="secondary"
+              ion-button
+              outline
+              block
+              round>
+              Edit Invoice
+            </button>
+
+            <button
+              margin-bottom
+              (click)="submitInvoice()"
+              [disabled]="isSubmitting"
+              color="secondary"
+              icon-end
+              ion-button
+              block
+              round>
+              Submit Invoice
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="!isMainServiceProvider()">
+            <button
+              [disabled]="submissionRequested"
+              (click)="requestSubmission()"
+              color="secondary"
+              icon-end
+              ion-button
+              block
+              round>
+              Request Invoice Submission
+            </button>
+          </ng-container>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-item class="border-btm" margin-bottom class="footer-text" text-wrap *ngIf="!isMainServiceProvider()">
+      <p ion-text color="primary" text-center>The submission request will be sent to the main service provider.</p>
+    </ion-item>
+  </div>
+</ion-footer>

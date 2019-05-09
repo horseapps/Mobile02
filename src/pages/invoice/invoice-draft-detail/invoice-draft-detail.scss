@@ -1,0 +1,63 @@
+page-invoice-draft-detail {
+  .col {
+    font-size: 14px;
+  }
+
+  .content {
+    background-color: color($colors, lt-blue);
+  }
+
+  .grid {
+    p {
+      margin: 5px 0px;
+    }
+  }
+
+  .service-grid {
+    padding-right: 0px;
+
+    .col {
+      padding-right: 0px;
+    }
+  }
+
+  .footer-text {
+    width: 80%;
+    margin: 0 auto;
+  }
+
+  .item-ios h2 {
+    min-height: 21px;
+  }
+
+  ion-item {
+    ion-grid {
+      padding-bottom: 0px !important;
+    }
+  }
+
+  .zero-top-margin-item {
+    .label {
+      margin-top: 0px;
+    }
+
+    ion-grid {
+      padding-top: 0px !important;
+
+      ion-row:first-child {
+        ion-col {
+          margin-top: 0px !important;
+          padding-top: 0px !important;
+
+          p {
+            padding-top: 0px !important;
+            margin-top: 0px !important;
+          }
+        }
+      }
+    }
+
+    margin-top: 0px;
+    padding-top: 0px;
+  }
+}

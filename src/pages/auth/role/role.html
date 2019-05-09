@@ -1,0 +1,47 @@
+<ion-content class="authentication">
+  <div class="lg-header">
+    <p ion-text color="light">I am a...</p>
+  </div>
+
+  <!-- Icon row -->
+  <ion-row align-items-center>
+    <ion-col align-items-center col-6 (click)="setRole('horse manager')">
+      <div class="icon-div">
+        <img src="assets/images/horse-mngr-icon.svg">
+      </div>
+    </ion-col>
+
+    <ion-col col-6 (click)="setRole('service provider')">
+      <div class="icon-div">
+        <img src="assets/images/service-provider-icon.svg">
+      </div>
+    </ion-col>
+  </ion-row>
+
+  <!-- Title row -->
+  <ion-row align-items-center>
+    <ion-col>
+      <p class="font-md text-bold">Horse Manager</p>
+    </ion-col>
+
+    <ion-col>
+      <p class="font-md text-bold">Service Provider</p>
+    </ion-col>
+  </ion-row>
+
+  <!-- List row -->
+  <ion-row align-items-center class="list-row">
+    <ion-col>
+      <ul class="font-sm">
+        <li>Horse Trainers</li>
+        <li>Horse Owners</li>
+      </ul>
+    </ion-col>
+    <ion-col>
+      <ul class="font-sm">
+        <li>Horse Braiders</li>
+        <li>Other Services</li>
+      </ul>
+    </ion-col>
+  </ion-row>
+</ion-content>

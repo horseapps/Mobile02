@@ -1,0 +1,38 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Confirm
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <p class="item-header" margin-left>Payment Approver</p>
+  <ion-item *ngIf="form.value._approver">
+    {{this.form.value._approver.name}}
+  </ion-item>
+
+  <p class="item-header" margin-left>Maximum Amount</p>
+  <ion-item *ngIf="!form.value.isUnlimited">
+    {{this.form.value.maxAmount}}
+  </ion-item>
+  <ion-item *ngIf="form.value.isUnlimited">
+    Unlimited
+  </ion-item>
+
+
+</ion-content>
+
+<ion-footer>
+  <div padding class="btn-container">
+    <button round color="secondary" ion-button block (click)="submit()" strong="true" [disabled]="((form && !form.valid) || !form.value._approver) || isSubmitting">
+      Confirm
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>

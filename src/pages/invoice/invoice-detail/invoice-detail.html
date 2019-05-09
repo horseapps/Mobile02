@@ -1,0 +1,367 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Invoice Detail
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher (ionRefresh)="findOne($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Managers see the main service provider -->
+  <ion-item class="border-btm avatar-item" *ngIf="authService.isManager() && invoiceService.invoice" (click)="goToPublicProfile(invoiceService.invoice._serviceProvider, false)">
+    <ion-avatar item-start>
+      <img src="{{userService.getAvatarUrlForUser(invoiceService.invoice._serviceProvider)}}">
+    </ion-avatar>
+    <h2 ion-text color="dark">{{invoiceService.invoice._serviceProvider.name}}</h2>
+    <p class="font-12">INVOICE SUBMITTED: {{invoiceService.displayCreatedAt(invoiceService.invoice) | date: 'shortDate'}}</p>
+    <p class="font-12 text-bold" *ngIf="invoiceService.invoice.paidInFullAt">MARKED AS PAID: {{invoiceService.invoice.paidInFullAt | date: 'shortDate'}}</p>
+    <p *ngIf="invoiceService.hasPaymentApproverForInvoice(authService.currentUser, invoiceService.invoice)">
+      <span class="font-12" ion-text color="burgundy">You were authorized to approve owner payments.</span>
+    </p>
+  </ion-item>
+
+  <!-- Service providers see the horse trainer -->
+  <ion-item class="border-btm avatar-item" *ngIf="authService.isServiceProvider() && invoiceService.invoice" (click)="goToPublicProfile(invoiceService.invoice._trainer, false)">
+    <ion-avatar item-start>
+      <img src="{{userService.getAvatarUrlForUser(invoiceService.invoice._trainer)}}">
+    </ion-avatar>
+    <h2 ion-text color="dark">{{invoiceService.invoice._trainer.name}}</h2>
+    <p class="font-12">INVOICE SUBMITTED: {{invoiceService.displayCreatedAt(invoiceService.invoice) | date: 'shortDate'}}</p>
+    <p class="font-12 text-bold" *ngIf="invoiceService.invoice.paidInFullAt">MARKED AS PAID: {{invoiceService.invoice.paidInFullAt | date: 'shortDate'}}</p>
+  </ion-item>
+
+  <!-- Horse -->
+  <ion-item color="lt-blue" *ngIf="invoiceService.invoice && invoiceService.invoice._horse" (click)="goToPublicHorseProfile(invoiceService.invoice._horse)">
+    <ion-avatar item-start>
+      <img src="{{horseService.getAvatarUrlForHorse(invoiceService.invoice._horse)}}">
+    </ion-avatar>
+    <p class="text-bold font-14">{{invoiceService.invoice._horse.barnName}}</p>
+    <p class="font-12">"{{invoiceService.invoice._horse.showName}}"</p>
+  </ion-item>
+
+  <!-- Requests -->
+  <ng-container *ngIf="invoiceService.invoice">
+    <ion-item
+      color="lt-blue"
+      *ngFor="let request of invoiceService.invoice._requests; let i=index"
+      [ngClass]="{'zero-top-margin-item': invoiceService.previousRequestHasSameDate(invoiceService.invoice._requests, request, i)}">
+      <!-- Show horse for every request if there are multiple horses on the invoice from the older app version -->
+      <ion-item class="horse-item" color="lt-blue" *ngIf="!invoiceService.invoice._horse">
+        <ion-avatar *ngIf="request._horse" item-start (click)="goToHorsePublicProfile(request._horse)">
+          <img src="{{horseService.getAvatarUrlForHorse(request._horse)}}">
+        </ion-avatar>
+        <p  *ngIf="request._horse" class="text-bold font-14" ion-text color="dark">{{request._horse.barnName}}</p>
+        <ng-container *ngIf="!request._horse">
+          <p class="font-sm text-italic" ion-text color="dark">Horse has been deleted.</p>
+        </ng-container>
+      </ion-item>
+
+      <p class="font-12" ion-text color="manatee" *ngIf="!invoiceService.previousRequestHasSameDate(invoiceService.invoice._requests, request, i)">{{request.date | date: 'shortDate'}}</p>
+      <p class="text-uppercase font-12" ion-text color="manatee" *ngIf="request._show && !invoiceService.previousRequestHasSameDate(invoiceService.invoice._requests, request, i)">{{request._show.name}}</p>
+      <ion-grid class="padding-left-none service-grid">
+        <ion-row *ngFor="let service of request.services">
+          <ion-col class="padding-left-none">
+            <p>{{service.service}} (x{{service.quantity || 1}})</p>
+            <p *ngIf="(request._reassignedTo && isMainServiceProvider()) || (request._reassignedTo && authService.isManager())" class="font-12">Completed By {{request._reassignedTo.name}}</p>
+          </ion-col>
+          <ion-col text-right *ngIf="authService.isManager()">
+            {{constants.addServiceFee(service.rate * (service.quantity || 1)) | currency:'USD':true:'1.2'}}
+          </ion-col>
+          <ion-col text-right *ngIf="authService.isServiceProvider()">
+            <p>{{service.rate * (service.quantity || 1) | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <div *ngIf="request.instructions">
+        <p class="text-uppercase font-12">NOTES</p>
+        <p class="font-12 text-italic">{{request.instructions}}</p>
+      </div>
+    </ion-item>
+  </ng-container>
+
+  <!-- Subtotal -->
+  <ion-item color="lt-blue" *ngIf="invoiceService.invoice">
+    <ion-grid class="padding-left-none service-grid">
+      <ion-row class="font-14">
+        <ion-col class="padding-left-none text-bold">
+          Subtotal
+        </ion-col>
+        <ion-col text-right class="text-bold" *ngIf="authService.isManager()">
+          {{constants.addServiceFee(invoiceService.calculateTotal(invoiceService.invoice._requests)) | currency:'USD':true:'1.2'}}
+        </ion-col>
+        <ion-col text-right class="text-bold" *ngIf="authService.isServiceProvider()">
+          {{invoiceService.calculateTotal(invoiceService.invoice._requests) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-item>
+
+  <div>
+    <!-- Horse manager payment section -->
+    <div class="payment-section border-top">
+      <!-- Tip -->
+      <ion-item class="border-btm tip-item" *ngIf="authService.isManager() && !invoiceService.invoice._payments.length">
+        <ion-label
+          ion-text
+          color="secondary"
+          [ngClass]="{'opacity': invoiceService.invoice._payments.length}"
+          class="text-bold">
+          Add Tip
+        </ion-label>
+        <ion-input
+          [disabled]="invoiceService.invoice._payments.length"
+          class="text-bold"
+          (ionChange)="updateDisplayTotal()"
+          text-right
+          type="number"
+          pattern="[0-9]*"
+          ion-text color="secondary"
+          [(ngModel)]="tipAmount"
+          placeholder="$0.00">
+        </ion-input>
+      </ion-item>
+      <div *ngIf="tipAmount && tipAmount < 1" class="form-control-error">Tip must be at least $1.00 - numerical characters only</div>
+
+      <!-- Invoice tip on completed invoice -->
+      <ion-grid class="border-btm" *ngIf="invoiceService.invoice._payments.length && (isMainServiceProvider() || authService.isManager())">
+        <ion-row class="opacity" ion-text color="secondary">
+          <ion-col>
+            <p class="text-bold" *ngIf="invoiceService.invoice.paidInFullAt || invoiceService.invoice._payments.length">Tip Added</p>
+            <p class="text-bold" *ngIf="!invoiceService.invoice.paidInFullAt && !invoiceService.invoice._payments.length">Add Tip</p>
+          </ion-col>
+          <ion-col text-right class="text-bold">
+            <p>{{invoiceService.invoice.tip || tipAmount || 0 | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Invoice total -->
+      <ion-grid class="border-btm">
+        <ion-row>
+          <ion-col col-9>
+            <p class="text-bold" *ngIf="isMainServiceProvider() || authService.isManager()">Invoice Total</p>
+            <p class="text-bold" *ngIf="!isMainServiceProvider() && !authService.isManager()">Your Apportionment</p>
+          </ion-col>
+
+          <!-- Total for the horse manager -->
+          <ion-col text-right class="text-bold" *ngIf="authService.isManager()">
+            <p>{{displayTotal | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+
+          <!-- Do not add tip to the total if user is a reassignee -->
+          <ion-col text-right class="text-bold" *ngIf="authService.isServiceProvider() && !isMainServiceProvider()">
+            <p>{{invoiceService.calculateTotal(invoiceService.invoice._requests) | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+
+          <!-- Add tip to total is user is the main service provider -->
+          <ion-col text-right class="text-bold" *ngIf="authService.isServiceProvider() && isMainServiceProvider()">
+            <p>{{invoiceService.calculateTotal(invoiceService.invoice._requests) + (invoiceService.invoice.tip || 0) | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- The main service provider's portion of the invoice -->
+      <ion-grid class="border-btm" *ngIf="isMainServiceProvider() && invoiceService.invoice._reassignees && invoiceService.invoice._reassignees.length">
+        <ion-row>
+          <ion-col col-9 class="text-bold">
+            <p>Your Apportionment</p>
+          </ion-col>
+          <ion-col text-right class="text-bold">
+            <p>{{mainProviderTotal + (invoiceService.invoice.tip || 0) | currency:'USD':true:'1.2'}}</p>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <!-- Invoice balance paid (only show to main service provider) in outstanding invoices -->
+      <ng-container *ngIf="shouldShowBalance()">
+        <ion-grid class="border-btm">
+          <ion-row class="text-bold" ion-text color="teal">
+            <ion-col>
+              <p>Balance Paid</p>
+            </ion-col>
+            <ion-col text-right>
+              <p>{{amountPaidOnInvoice() | currency:'USD':true:'1.2'}}</p>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- Outstanding balance -->
+        <ion-grid class="border-btm">
+          <ion-row class="text-bold">
+            <ion-col>
+              <p>Outstanding Balance</p>
+            </ion-col>
+            <ion-col text-right>
+              <p>{{outstandingBalance() | currency:'USD':true:'1.2'}}</p>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ng-container>
+
+      <div *ngIf="authService.isServiceProvider() && !invoiceService.invoice.paidInFullAt">
+        <div class="stick-to-bottom">
+          <ion-grid>
+            <ion-row *ngIf="isMainServiceProvider()">
+              <ion-col col-6>
+                <button (click)="goToEditPage()" ion-button block round outline color="secondary" [disabled]="invoiceService.invoice._payments.length">Edit Invoice</button>
+              </ion-col>
+              <ion-col col-6 (click)="markAsPaid()">
+                <button ion-button block round outline color="secondary">Mark As Paid</button>
+              </ion-col>
+            </ion-row>
+
+            <ion-row>
+              <ion-col>
+                <button
+                  *ngIf="!paymentRequested"
+                  (click)="requestPayment()"
+                  color="secondary"
+                  ion-button
+                  block
+                  round>
+                  Send Payment Reminder
+                </button>
+
+                <button
+                  color="secondary"
+                  icon-end
+                  [disabled]="paymentRequested"
+                  *ngIf="paymentRequested"
+                  (click)="requestPayment()"
+                  ion-button
+                  block
+                  round>
+                  Payment Reminder Sent
+                </button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+
+          <ion-item margin-bottom class="footer-text" text-wrap>
+            <p ion-text color="primary" text-center>The payment reminder will be sent to the owner(s) of the horse or the leasee.</p>
+          </ion-item>
+        </div>
+      </div>
+
+      <div *ngIf="authService.isManager() && !invoiceService.invoice.fromDataMigration">
+        <!-- Show every paying user (this only shows those who are responsible for paying money, not payment approvers) and the portion they owe -->
+        <ion-grid class="background-white" *ngFor="let payer of invoiceService.invoice._payingUsers; let last = last" [ngClass]="{'border-btm': !last}">
+          <ion-row ion-text [ngClass]="{'color-teal': paymentIndex(payer) >= 0 && !invoiceService.invoice.paidInFullAt}">
+            <ion-col>
+              <p class="text-bold">{{payer._user.name}}</p>
+            </ion-col>
+            <ion-col *ngIf="paymentIndex(payer) >= 0" class="small-date">
+              <p class="font-12" ion-text color="jumbo-grey" *ngIf="!invoiceService.invoice.paidOutsideAppAt">{{paymentCreatedOn(paymentIndex(payer))}}</p>
+              <p class="font-12" ion-text color="jumbo-grey" *ngIf="invoiceService.invoice.paidOutsideAppAt">{{invoiceService.invoice.paidOutsideAppAt | date: 'shortDate'}}</p>
+            </ion-col>
+            <ion-col text-right col-3>
+              <p class="text-bold">{{calculatePayerTotal(payer) | currency:'USD':true:'1.2'}}</p>
+            </ion-col>
+          </ion-row>
+
+          <!-- If user has not yet paid their portion of invoice -->
+          <ion-row *ngIf="paymentIndex(payer) < 0">
+            <!-- If I am the paying user, I can submit payment -->
+            <button
+              class="submit-button"
+              (click)="submit(payer)"
+              margin-top
+              *ngIf="isPayingUser(payer._user._id)"
+              margin-left margin-right
+              margin-bottom
+              round
+              color="secondary"
+              ion-button
+              block
+              [disabled]="isSubmitting[payer._user._id] || (tipAmount && tipAmount < 1)"
+              strong="true">
+              Submit Payment
+              <ion-spinner *ngIf="isSubmitting[payer._user._id]" name="ios-small" color="white" margin-left></ion-spinner>
+            </button>
+
+            <!-- If I am a payment approver for this paying user and my auth limit is high enough -->
+            <div class="width-100-text-center" margin-top margin-left margin-right *ngIf="isPaymentApprover(payer._user._id) && isApprovedForTotal(payer)">
+              <p text-center ion-text margin-bottom color="primary">You are approving <span *ngIf="invoiceService.invoice._payingUsers.length > 1">a portion of </span>this payment on behalf of <strong>{{payer._user.name}}.</strong></p>
+              <button
+                class="submit-button"
+                (click)="submit(payer)"
+                margin-bottom
+                round
+                color="secondary"
+                ion-button
+                block
+                [disabled]="isSubmitting[payer._user._id] || (tipAmount && tipAmount < 1)"
+                strong="true">
+                Submit Payment
+                <ion-spinner *ngIf="isSubmitting[payer._user._id]" name="ios-small" color="white" margin-left></ion-spinner>
+              </button>
+            </div>
+
+            <!-- If I am a payment approver for this paying user but my auth limit is NOT high enough -->
+            <div class="width-100-text-center" margin-top margin-left margin-right *ngIf="isPaymentApprover(payer._user._id) && !isApprovedForTotal(payer)">
+              <p text-center ion-text margin-bottom color="secondary">This invoice is <strong>{{calculatePayerTotal(payer) - approvalAmount(payer) | currency:'USD':true:'1.2'}}</strong> more than the maximum amount you are authorized to pay on behalf of <strong>{{payer._user.name}}.</strong></p>
+              <button
+                (click)="requestApprovalIncrease(payer)"
+                [disabled]="approvalIncreaseRequested || isRequestingApprovalIncrease"
+                margin-bottom
+                round
+                outline
+                color="secondary"
+                ion-button
+                block
+                strong="true">
+                Request Approval
+              </button>
+            </div>
+
+            <!-- If I am not a payment approver for this paying user -->
+            <div margin-top margin-left margin-right *ngIf="!isPayingUser(payer._user._id) && !isPaymentApprover(payer._user._id)" class="width-100-text-center">
+              <p text-center ion-text margin-bottom color="secondary">You do not have the correct authorization to approve this payment on behalf of <strong>{{payer._user.name}}.</strong></p>
+              <button
+                *ngIf="!paymentRequested"
+                (click)="requestApproval(payer)"
+                margin-bottom
+                round
+                outline
+                [disabled]="isRequestingApproval"
+                color="secondary"
+                ion-button
+                block
+                strong="true">
+                Request Approval
+              </button>
+              <button
+                *ngIf="paymentRequested"
+                (click)="requestApproval(payer)"
+                margin-bottom
+                round
+                outline
+                color="secondary"
+                ion-button
+                block
+                [disabled]="paymentRequested"
+                strong="true">
+                Approval Requested
+              </button>
+            </div>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </div>
+  </div>
+</ion-content>
+

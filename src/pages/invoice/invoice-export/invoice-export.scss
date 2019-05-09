@@ -1,0 +1,113 @@
+page-invoice-export {
+  .mixed-case-header {
+    font-size: 14px;
+    color: color($colors, primary);
+  }
+
+  .date-input-row {
+    .text-input,
+    .text-input-ios {
+      position: relative;
+      right: 10px;
+      font-size: 1.2em;
+      border-bottom: 1px black solid;
+      width: 85%;
+    }
+
+    ion-icon {
+      position: relative;
+      right: 7px;
+      font-size: 3em;
+    }
+  }
+
+  .label,
+  .label-ios {
+    display: inline;
+    font-size: 1.3em;
+    position: relative;
+    top: 10px;
+    left: 5px;
+  }
+
+  .card,
+  .card-ios {
+    margin: 0;
+    width: 100%;
+    border-bottom: solid 1px #C7C7CC;
+    box-shadow: none;
+  }
+
+  ion-select {
+    min-width: 99% !important;
+    max-width: 99% !important;
+  }
+
+  div.select-text {
+    position: relative;
+    left: 5px;
+  }
+
+  .select-wrapper {
+    padding-left: 0px;
+  }
+
+  .submit {
+    display: inline-block;
+    margin: 10 auto;
+  }
+
+  .search-item {
+    ion-label {
+      top: 0px;
+    }
+  }
+
+  .search-placeholder {
+    position: relative;
+    left: 0px;
+  }
+
+  .category-label {
+    display: block;
+    top: 0px;
+    color: color($colors, primary);
+  }
+
+  .date-label {
+    position: relative;
+    left: 10px;
+  }
+
+  .submit-wrapper {
+    display: block;
+    width: 100vw;
+    text-align: center;
+  }
+
+  .add-item {
+    ion-label {
+      top: 0px;
+      font-size: 1em;
+    }
+
+    .add-btn {
+      position: relative;
+      // top: 0px;
+      right: 5px;
+      font-size: 1.6em;
+    }
+  }
+
+  .searched-avatar {
+    position: relative;
+    left: 2px;
+  }
+
+  .searched-name {
+    position: relative;
+    left: 23px;
+    top: 0px;
+    font-size: 1em;
+  }
+}

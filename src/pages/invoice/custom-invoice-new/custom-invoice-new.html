@@ -1,0 +1,220 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Create Invoice
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+  <form novalidate [formGroup]="form" class="main-form">
+    <ion-list>
+      <p class="item-header" margin-left>Horse</p>
+      <!-- Horse Search Bar -->
+      <ion-item (click)="goToHorseSearchModal(horseFunction, 'Horse Name')" class="search-item">
+  
+        <ion-avatar item-start *ngIf="form.controls._horse.value">
+          <img *ngIf="!updatingHorse || newHorseSelected" src="{{userService.getAvatarUrlForUser(form.controls._horse.value)}}">
+  
+          <img *ngIf="updatingHorse && !newHorseSelected" src="assets/images/grey-placeholder.jpg">
+        </ion-avatar>
+  
+        <p *ngIf="!form.controls._horse.value" ion-text color="jumbo-grey">Horse Name</p>
+        <div *ngIf="form.controls._horse.value && (!updatingHorse || newHorseSelected)">
+          <p ion-text color="dark">{{form.controls._horse.value.barnName}}</p>
+          <p ion-text color="dark">
+            <em>"{{form.controls._horse.value.showName}}"</em>
+          </p>
+        </div>
+        <p ion-text color="danger" *ngIf="updatingHorse && !newHorseSelected">Select New Horse</p>
+        <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+      </ion-item>
+      <control-errors [control]="form.controls._horse" [submitAttempt]="submitAttempt"></control-errors>
+  
+      <!-- Additional info for found horse -->
+      <div *ngIf="form.controls._horse.value && form.controls._horse.value._trainer">
+        <p class="item-header" margin-left>Trainer</p>
+        <ion-item class="horse-info" text-wrap>
+          <ion-avatar item-left *ngIf="form.controls._horse.value._trainer.avatar && form.controls._horse.value._trainer.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{form.controls._horse.value._trainer.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+  
+          <ion-avatar item-left *ngIf="!form.controls._horse.value._trainer.avatar">
+            <img src="assets/images/avatar-placeholder.png" />
+          </ion-avatar>
+          <h2>{{form.controls._horse.value._trainer.name}}</h2>
+        </ion-item>
+      </div>
+
+      <div margin-bottom *ngIf="form.controls._horse.value && form.controls._horse.value._owners && form.controls._horse.value._owners.length">
+        <p class="item-header" margin-left>Owner(s)</p>
+        <ion-item class="horse-info" text-wrap *ngIf="form.controls._horse.value._owners.length > 1">
+          <h2>Multiple Owners</h2>
+        </ion-item>
+        <ion-item class="horse-info" text-wrap *ngIf="form.controls._horse.value._owners.length === 1">
+          <ion-avatar item-left *ngIf="form.controls._horse.value._owners[0]._user.avatar && form.controls._horse.value._owners[0]._user.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{form.controls._horse.value._owners[0]._user.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+  
+          <ion-avatar item-left *ngIf="!form.controls._horse.value._owners[0]._user.avatar">
+            <img src="assets/images/avatar-placeholder.png" />
+          </ion-avatar>
+          <h2>{{form.controls._horse.value._owners[0]._user.name}}</h2>
+        </ion-item>
+      </div>
+
+      <div *ngIf="form.controls._horse.value && form.controls._horse.value._leasedTo" class="margin-bottom-1x">
+        <p class="item-header" margin-left>Leased To</p>
+        <ion-item class="horse-info" text-wrap>
+          <ion-avatar item-left *ngIf="form.controls._horse.value._leasedTo.avatar && form.controls._horse.value._leasedTo.avatar.styles">
+            <img src="{{constants.AWS_S3_BASE_URL}}/{{form.controls._horse.value._leasedTo.avatar.styles.thumb_square}}" />
+          </ion-avatar>
+      
+          <ion-avatar item-left *ngIf="!form.controls._horse.value._leasedTo.avatar">
+            <img src="assets/images/avatar-placeholder.png" />
+          </ion-avatar>
+          <h2>{{form.controls._horse.value._leasedTo.name}}</h2>
+        </ion-item>
+      </div>
+
+      <!-- Date -->
+      <!-- <ion-item class="input-item">
+        <ion-label>Date</ion-label>
+        <ion-datetime formControlName="date" placeholder="Select" displayFormat="DDD MMM D, YYYY" min="{{minYear}}" max="{{maxYear}}"></ion-datetime>
+      </ion-item> -->
+      <ion-card class="input-item input-card">
+        <ion-grid>
+          <ion-row>
+            <ion-col col-2>
+              <ion-label>Date</ion-label>
+            </ion-col>
+            <ion-col col-8>
+              <!-- Date input saves new values as the user types -->
+              <ion-input class="date-input" formControlName="date" type="text" placeholder="MM/DD/YYYY"
+                (ionChange)="setDateFromInput($event)"></ion-input>
+            </ion-col>
+            <ion-col col-2 text-right>
+              <!-- Calendar datepicker -->
+              <ion-icon name="ios-calendar" color="primary" (click)="goToCalendarModal({ function: dateFunction, date: date })">
+              </ion-icon>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card>
+      <control-errors [control]="form.controls.date" [submitAttempt]="submitAttempt"></control-errors>
+  
+      <!-- Services -->
+      <p class="item-header" margin-left id="services-section">Services</p>
+      <ion-list>
+        <ng-container *ngIf="selectedServices">
+          <ion-card *ngFor="let service of selectedServices; let i=index" class="service-item service-card border-btm">
+            <ion-grid class="margin-top-none margin-bottom-none">
+              <ion-row class="margin-top-none margin-bottom-none">
+                <!-- Lock in the names and rates of previously created services; newly added ones are editable -->
+                <ion-col col-8 class="margin-top-none margin-bottom-none">
+                  <ion-label margin-left *ngIf="!service.addedThisVisit" class="service-name">{{service.service}}</ion-label>
+                  <ion-input margin-left *ngIf="service.addedThisVisit" class="service-name name-input" type="text" value="{{service.service}}"
+                    placeholder="Service Name" (ionFocus)="scrollToServiceInput(i)" (ionChange)="setServiceName(service, $event)"></ion-input>
+                </ion-col>
+                <ion-col class="margin-top-none margin-bottom-none">
+                  <ion-icon item-content tappable class="remove-btn" color="danger" name="remove-circle" (click)="removeService(i)" item-right></ion-icon>
+                </ion-col>
+              </ion-row>
+              <ion-row class="margin-top-none margin-bottom-none">
+                <ion-col col-7 class="margin-top-none margin-bottom-none">
+                  <ion-label margin-left *ngIf="!service.addedThisVisit" class="rate-label">Service Price {{service.rate | currency:'USD':true:'1.2'}}</ion-label>
+                  <ion-label margin-left *ngIf="service.addedThisVisit" class="rate-label">Service Price $
+                    <ion-input *ngIf="service.addedThisVisit" class="rate-input" type="number" placeholder="0" (ionFocus)="scrollToServiceInput(i);clearValue($event)"
+                      (ionChange)="setServiceRate(service, $event)"></ion-input>
+                  </ion-label>
+                </ion-col>
+                <ion-col col-2 class="margin-top-none margin-bottom-none">
+                  <ion-label class="quantity-label">Qty</ion-label>
+                </ion-col>
+                <ion-col col-2 class="margin-top-none margin-bottom-none">
+                  <ion-input class="quantity-input" type="text" pattern="\d*" value="{{service.quantity}}" (ionFocus)="scrollToServiceInput(i);clearValue($event)"
+                    (ionChange)="setServiceQuantity(service, $event)"></ion-input>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-card>
+        </ng-container>
+
+        <!-- Checkbox select for provider's own services -->
+        <ion-item *ngIf="services">
+          <ion-label>Add Services</ion-label>
+          <ion-select #serviceSelector ng-model="selectedServices" padding-right [disabled]="servicesError" (ionChange)="updateServices($event, true)" selectedText=" "
+            multiple="true" name="services">
+            <ion-option *ngFor="let service of services" ng-model="service" [value]="service" [selected]="inServiceList(service)">{{service.service}} {{service.rate | currency:'USD':true:'1.2'}}</ion-option>
+          </ion-select>
+        </ion-item>
+
+        <!-- Add service -->
+        <ion-item (click)="addService()" class="add-item">
+          <span ion-text color="secondary">Add Custom Service
+            <ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon>
+          </span>
+        </ion-item>
+        <!-- Conditional error message for incomplete services -->
+        <div *ngIf="servicesError" class="form-control-error">All services must have a valid name, rate of at least $1.00, and whole number quantity greater than 0 - numeric characters only.</div>
+        <div *ngIf="noServicesSelected" class="form-control-error">Please add at least one service.</div>
+
+        <p ion-text margin-right margin-left color="primary" class="line-height">
+          Horse managers will see these prices increased by {{constants.STRIPE_PERCENTAGE * 100}}% as the HorseLinc service fee.
+        </p>
+      </ion-list>
+
+      <!-- Select a Show -->
+      <div class="show-info">
+        <p class="item-header" margin-left>Show (optional)</p>
+        <!-- Show search bar -->
+        <ion-searchbar placeholder="Search by name" [(ngModel)]="searchText" [ngModelOptions]="{ standalone: true }" (ionInput)="searchShows()"
+          (ionClear)="clearShowSearch()" class="border-top">
+        </ion-searchbar>
+
+        <!-- Show results -->
+        <ion-item *ngFor="let show of shows" tappable (click)="chooseShow(show)">
+          <p class="text-capitalize">{{show.name}}</p>
+        </ion-item>
+
+        <!-- Blank state for searchbar -->
+        <ion-item ion-item detail-none color="white" *ngIf="searchText && searchText.length > 2 && !shows.length">
+          <p class="text-italic">Sorry, there are no shows matching that search</p>
+        </ion-item>
+
+        <!-- Show name -->
+        <ion-item formGroupName="_show">
+          <ion-input class="show-input text-capitalize" placeholder="Or enter show here" formControlName="name"></ion-input>
+        </ion-item>
+
+
+        <!-- Competition class-->
+        <ion-item>
+          <ion-input formControlName="competitionClass" class="text-capitalize" type="text" placeholder="Competition Class"></ion-input>
+        </ion-item>
+        <control-errors [control]="form.controls.competitionClass" [submitAttempt]="submitAttempt"></control-errors>
+      </div>
+    </ion-list>
+
+    <ion-list>
+      <ion-item>
+        <ion-textarea autocomplete="on" autocorrect="on" fz-elastic placeholder="Add a note to the Horse Managers" rows="4" maxlength="300"
+          type="text" (keyup)="maxLength()" formControlName="instructions">
+        </ion-textarea>
+      </ion-item>
+    </ion-list>
+
+    <div class="btn-container">
+      <button round outline color="secondary" ion-button block (click)="goToConfirmation()" strong="true" [disabled]="servicesError">
+        Next
+      </button>
+    </div>
+
+  </form>
+
+</ion-content>

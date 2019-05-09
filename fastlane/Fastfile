@@ -1,0 +1,220 @@
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/docs
+# All available actions: https://github.com/fastlane/fastlane/blob/master/docs/Actions.md
+# can also be listed using the `fastlane actions` command
+
+# Change the syntax highlighting to Ruby
+# All lines starting with a # are ignored when running `fastlane`
+
+# By default, fastlane will send which actions are used
+# No personal data is shared, more information on https://github.com/fastlane/enhancer
+# Uncomment the following line to opt out
+# opt_out_usage
+
+# If you want to automatically update fastlane if a new version is available:
+# update_fastlane
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "1.61.0"
+
+platform :ios do
+  before_all do
+    # Anything here will run before any lane
+  end
+
+  desc "Create development certificates"
+  lane :match_development do
+    match(
+      git_url: ENV['MATCH_GITHUB_URL'],
+      type: "development",
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER']
+    )
+  end
+
+  desc "Create app store certificates"
+  lane :match_appstore do
+    match(
+      git_url: ENV['MATCH_GITHUB_URL'],
+      type: "appstore",
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER']
+    )
+  end
+
+  desc "Create app in iTunes"
+  lane :newapp do
+    produce(
+      username: ENV['ITUNES_USERNAME'],
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER'],
+      app_name: ENV['ITUNES_APP_NAME'],
+      language: 'English',
+      app_version: '1.0', # Always start with 1.0 for our app store release
+      sku: ENV['ITUNES_SKU']
+    )
+    push
+    match(
+      git_url: ENV['MATCH_GITHUB_URL'],
+      type: "appstore",
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER']
+    )
+  end
+
+  desc "Creates a new push certificate, ready to be uploaded to SnapCore"
+  lane :push do
+    sh "mkdir -p ./certificates/"
+    pem(
+      generate_p12: true,
+      app_identifier: ENV["ITUNES_APP_IDENTIFIER"],
+      username: ENV["ITUNES_USERNAME"],
+      output_path: './fastlane/certificates/',
+      pem_name: "#{ENV['ITUNES_APP_NAME']}_production_push_certificate"
+    )
+  end
+
+  desc "Installs FixCode which disables the \"Fix Issue\" button in Xcode"
+  lane :xcode do
+    install_xcode_plugin(
+      url: "https://github.com/fastlane/FixCode/releases/download/0.2.0/FixCode.xcplugin.zip"
+    )
+  end
+
+  desc "Submit a new Beta Build to Apple TestFlight"
+  lane :beta do
+    # BUG: Currently if there are no builds this will cause an error
+    # Comment out latest_testflight_build_number and set build_number to 1
+    build_number = latest_testflight_build_number.to_i || 0
+    # build_number = 40
+    increment_build_number({
+      xcodeproj: ENV['IOS_PROJECT_FILE'],
+      build_number: build_number + 1
+    })
+    match(
+      git_url: ENV['MATCH_GITHUB_URL'],
+      type: "appstore",
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER']
+    )
+    sh "mkdir -p ./builds/"
+    gym(
+      clean: true,
+      include_bitcode: false,
+      scheme: ENV['SCHEME'],
+      workspace: ENV['IOS_WORKSPACE_FILE'],
+      export_method: 'app-store',
+      output_directory: './fastlane/builds/'
+    )
+    pilot
+    if is_ci
+      post_to_slack(lane: lane, destination: "TestFlight")
+    end
+  end
+
+  lane :register_new_device do  |options|
+    device_name = prompt(text: "Enter the device name: ")
+    device_udid = prompt(text: "Enter the device UDID: ")
+    device_hash = {}
+    device_hash[device_name] = device_udid
+    register_devices(
+                     devices: device_hash
+                     )
+    refresh_profiles
+  end
+
+  lane :refresh_profiles do
+    match(
+      type: "development",
+      force: true)
+    match(
+      type: "adhoc",
+      force: true)
+  end
+
+  desc "Deploy a new version to the App Store"
+  lane :appstore do
+    # BUG: Currently if there are no builds this will cause an error
+    # Comment out latest_testflight_build_number and set build_number to 1
+    # If you are getting the error, about 'builds' being undefined, make
+    # sure you've already submitted a testflight build OR set the build_number to 1
+    # build_number = latest_testflight_build_number || 1
+    build_number = 13
+    increment_build_number({
+      xcodeproj: ENV['IOS_PROJECT_FILE'],
+      build_number: build_number + 1
+    })
+    match(
+      git_url: ENV['MATCH_GITHUB_URL'],
+      type: "appstore",
+      app_identifier: ENV['ITUNES_APP_IDENTIFIER']
+    )
+    sh "mkdir -p ./builds/"
+    gym(
+      clean: true,
+      include_bitcode: false,
+      scheme: ENV['SCHEME'],
+      workspace: ENV['IOS_WORKSPACE_FILE'],
+      export_method: 'app-store',
+      output_directory: './fastlane/builds/'
+    )
+    deliver(force: true)
+    if is_ci
+      post_to_slack(lane: lane, destination: "App Store")
+    end
+  end
+
+  desc "Slack helper method"
+  private_lane :post_to_slack do |options|
+    lane      = options[:lane]
+    version     = get_version_number(xcodeproj: ENV['IOS_PROJECT_FILE'])
+    build       = get_build_number(xcodeproj: ENV['IOS_PROJECT_FILE'])
+    environment = lane.upcase
+    destination = options[:destination]
+    if is_ci
+      slack( message: "<!here|here>: New :ios: `#{lane}` *#{version}* (#{build}) has been submitted to *#{destination}*  :rocket:", success: true, default_payloads: [] )
+    end
+  end
+
+  after_all do |lane|
+    # This block is called, only if the executed lane was successful
+  end
+
+  error do |lane, exception|
+    if is_ci
+      slack( message: "Fastlane failed with errors: #{exception.message}", success: false, default_payloads: [] )
+    end
+  end
+end
+
+
+# Fastlane doesn't really have any tools for this yet
+# so simply running the required shell commands to build Android
+platform :android do
+
+  # NOTE: The command line won't prompt for questions
+  # IMPORTANT: The password should always be the same as the keystore name
+  desc "Creates an Android keystore"
+  lane :keystore do
+    sh "mkdir -p ./keystore/"
+    sh "keytool -genkey -v -keystore ../fastlane/keystore/#{ENV['ANDROID_KEYSTORE_NAME']}-release-key.keystore -alias #{ENV['ANDROID_KEYSTORE_NAME']} -keyalg RSA -keysize 2048 -validity 10000"
+  end
+
+  # NOTE: The command line won't prompt for questions
+  desc "Creates an Android ARM release build"
+  lane :release_build do
+    sh "cordova build --release android"
+    sh "jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ./keystore/#{ENV['ANDROID_KEYSTORE_NAME']}-release-key.keystore ../platforms/android/build/outputs/apk/android-armv7-release-unsigned.apk #{ENV['ANDROID_KEYSTORE_NAME']}"
+    sh "zipalign -v 4 ../platforms/android/build/outputs/apk/android-armv7-release-unsigned.apk ../platforms/android/build/outputs/apk/android-armv7-release.apk"
+  end
+
+  # NOTE: The command line won't prompt for questions
+  desc "Creates an Android x86 release build"
+  lane :release_build_x86 do
+    sh "cordova build --release android"
+    sh "jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ./keystore/#{ENV['ANDROID_KEYSTORE_NAME']}-release-key.keystore ../platforms/android/build/outputs/apk/android-x86-release-unsigned.apk #{ENV['ANDROID_KEYSTORE_NAME']}"
+    sh "zipalign -v 4 ../platforms/android/build/outputs/apk/android-x86-release-unsigned.apk ../platforms/android/build/outputs/apk/android-x86-release.apk"
+  end
+
+end
+
+
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/docs/Platforms.md
+# All available actions: https://github.com/fastlane/fastlane/blob/master/docs/Actions.md

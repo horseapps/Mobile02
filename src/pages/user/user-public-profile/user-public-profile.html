@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher (ionRefresh)="findUser($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <ng-container *ngIf="!isLoading && user">
+    <!-- Avatar header -->
+    <div class="avatar-container">
+      <ion-avatar class="avatar">
+        <div>
+          <img src="{{userService.getAvatarUrlForUser(user)}}" style="width: 100%; height: 100%;">
+        </div>
+      </ion-avatar>
+
+      <h2 text-center class="text-bold" *ngIf="user.name">{{user.name}}</h2>
+      <p text-center class="font-16" *ngIf="user.barn">{{user.barn}}</p>
+      <p ion-text color="teal" class="text-underline font-16" text-center *ngIf="user.phone && !hideContactInfo" (click)="callOrText(user.phone)">{{user.phone}}</p>
+
+      <!-- Do not show location if user is a service provider -->
+      <p *ngIf="user.location && !hideContactInfo" class="font-16 location-text" text-center>{{user.location}}</p>
+    </div>
+
+    <!-- Rates -->
+    <ion-grid class="rates" *ngIf="isServiceProvider(user)">
+      <p class="item-header">Rates</p>
+      <ion-row *ngFor="let service of user.services">
+        <ion-col text-left col-7 class="font-16">
+          {{service.service}}
+        </ion-col>
+        <ion-col *ngIf="authService.isServiceProvider()" col-5 class="font-16" text-right>
+          {{service.rate | currency:'USD':true:'1.2'}}
+        </ion-col>
+
+        <ion-col *ngIf="authService.isManager()" col-5 class="font-16" text-right>
+          {{constants.addServiceFee(service.rate) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ng-container>
+</ion-content>

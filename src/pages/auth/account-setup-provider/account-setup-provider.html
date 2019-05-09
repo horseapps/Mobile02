@@ -1,0 +1,85 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Service Provider Profile</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+  <ion-refresher (ionRefresh)="updateStripeStatus($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <form [formGroup]="form" novalidate class="main-form">
+    <avatar-upload-item [forObject]="authService.currentUser"></avatar-upload-item>
+
+    <ion-list>
+      <ion-item>
+        <ion-input formControlName="name" type="text" placeholder="Your Name"></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.name" [submitAttempt]="submitAttempt"></control-errors>
+
+      <ion-item>
+        <!-- Using regular input because text mask does not work on ion-item tag -->
+        <input class="telephone-input" formControlName="phone" type="text" placeholder="Phone Number" [textMask]="{mask: phoneMask, guide: false}"/>
+      </ion-item>
+      <control-errors [control]="form.controls.phone" [submitAttempt]="submitAttempt"></control-errors>
+    </ion-list>
+
+    <p class="item-header" margin-left id="service-input-section">Services & Rates</p>
+    <ion-list formArrayName="services">
+
+      <!-- Services -->
+      <div *ngFor="let service of form.controls.services.controls; let i=index" class="service-item border-btm">
+
+        <ion-item [formGroupName]="i" class="border-btm-none service-item">
+          <ion-input (ionFocus)="scrollToServiceInput()" class="service-input" autocomplete="on" autocorrect="on" type="text" formControlName="service" placeholder="Enter Service"></ion-input>
+          <ion-input (ionFocus)="scrollToServiceInput()" class="rate-input" [ngClass]="{'padding-right-4x' : i === 0 }" text-right type="number" formControlName="rate" placeholder="$0.00"></ion-input>
+
+          <!-- Remove button -->
+          <ion-icon *ngIf="i !== 0" class="remove-btn" (click)="removeService(i)" color="danger" name="remove-circle" item-right></ion-icon>
+        </ion-item>
+        <control-errors [control]="form.controls.services.controls[i].controls.service"></control-errors>
+        <control-errors [control]="form.controls.services.controls[i].controls.rate"></control-errors>
+      </div>
+
+      <!-- Add service -->
+      <ion-item (click)="addService()" class="add-item">
+        <span ion-text color="secondary">Add Another <ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon></span>
+      </ion-item>
+
+      <p
+        ion-text
+        margin-left
+        margin-right
+        color="primary"
+        class="line-height">
+        Horse managers will see these prices increased by {{constants.STRIPE_PERCENTAGE * 100}}% as the HorseLinc service fee.
+      </p>
+    </ion-list>
+
+    <p
+      ion-text
+      margin-left
+      margin-right
+      color="primary"
+      class="line-height"
+      padding-bottom>
+      By creating an account, you agree to the <a (click)="openTermsModal()">Terms & Conditions</a> and <a (click)="openPrivacyPolicyModal()">Privacy Policy</a> of HorseLinc.
+    </p>
+
+    <div class="btn-container">
+      <button
+        round
+        class="solid-round"
+        color="secondary"
+        ion-button
+        block
+        (click)="submit()"
+        strong="true"
+        [disabled]="isSubmitting">
+        Create Account
+        <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+      </button>
+    </div>
+  </form>
+</ion-content>

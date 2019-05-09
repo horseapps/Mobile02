@@ -1,0 +1,106 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Edit Invoice
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+  <!-- Horse item -->
+  <ion-item (click)="goToPublicHorseProfile(requests[0]._horse)" class="background-lt-blue">
+    <ion-avatar item-start>
+      <img src="{{horseService.getAvatarUrlForHorse(requests[0]._horse)}}">
+    </ion-avatar>
+    <p class="text-bold font-14" ion-text color="dark">{{requests[0]._horse.barnName}}</p>
+  </ion-item>
+
+  <!-- Requests -->
+  <div *ngFor="let request of requests; let requestIndex = index">
+    <p margin-left class="margin-top-none" ion-text color="jumbo-grey" [ngClass]="{'margin-bottom-none': request._show}">{{request.date | date: 'shortDate'}}</p>
+    <p margin-left class="text-uppercase margin-top-none" ion-text color="jumbo-grey" *ngIf="request._show">{{request._show.name}}</p>
+
+    <!-- Services -->
+    <ion-list class="border-top">
+      <ion-card *ngFor="let service of request.services; let i=index" class="service-item service-card border-btm">
+        <ion-grid class="margin-top-none margin-bottom-none">
+          <ion-row class="margin-top-none margin-bottom-none">
+            <!-- Lock in the names and rates of previously created services; newly added ones are editable -->
+            <ion-col col-8 class="margin-top-none margin-bottom-none">
+              <ion-label margin-left *ngIf="!service.addedThisVisit" class="service-name">{{service.service}}</ion-label>
+              <ion-input margin-left *ngIf="service.addedThisVisit" class="service-name name-input" type="text" value="{{service.service}}"
+                placeholder="Service Name" (ionChange)="validateAllServices()" (ionFocus)="scrollToServiceInput(requestIndex, i)" [(ngModel)]="request.services[i].service"></ion-input>
+            </ion-col>
+            <ion-col class="margin-top-none margin-bottom-none">
+              <ion-icon item-content tappable class="remove-btn" color="danger" name="remove-circle" (click)="removeService(request, i)" item-right></ion-icon>
+            </ion-col>
+          </ion-row>
+          <ion-row class="margin-top-none margin-bottom-none">
+            <ion-col col-7 class="margin-top-none margin-bottom-none">
+              <ion-label margin-left class="rate-label">Service Price $
+                <ion-input class="rate-input" type="number" placeholder="0" (ionChange)="validateAllServices()" (ionFocus)="scrollToServiceInput(requestIndex, i);clearValue($event)"
+                   [(ngModel)]="request.services[i].rate"></ion-input>
+              </ion-label>
+            </ion-col>
+            <ion-col col-2 class="margin-top-none margin-bottom-none">
+              <ion-label class="quantity-label">Qty</ion-label>
+            </ion-col>
+            <ion-col col-2 class="margin-top-none margin-bottom-none">
+              <ion-input class="quantity-input" type="text" pattern="\d*" (ionChange)="validateAllServices()" (ionFocus)="scrollToServiceInput(requestIndex, i);clearValue($event)"
+                 [(ngModel)]="request.services[i].quantity"></ion-input>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-card>
+
+      <!-- Add service -->
+      <ion-item (click)="addService(request, requestIndex)" class="add-item">
+        <span ion-text color="secondary">Add Another <ion-icon float-right name="ios-add-circle-outline" color="secondary" class="add-btn"></ion-icon></span>
+      </ion-item>
+
+      <div *ngIf="requests[requestIndex].servicesError" class="form-control-error">All services must have a valid name, rate of at least $1.00, and whole number quantity greater than 0 - numeric characters only.</div>
+    </ion-list>
+  </div>
+
+  <p
+    ion-text
+    margin-right
+    margin-left
+    color="primary"
+    class="line-height">
+    Horse managers will see these prices increased by {{constants.STRIPE_PERCENTAGE * 100}}% as the HorseLinc service fee.
+  </p>
+</ion-content>
+
+<ion-footer class="border-top">
+  <div padding>
+    <button
+      margin-bottom
+      round
+      color="secondary"
+      ion-button
+      block
+      [disabled]="isSubmitting || isDeletingInvoice"
+      (click)="submit()"
+      strong="true">
+      Save
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+    <button
+      (click)="deleteInvoice()"
+      ion-button
+      round
+      block
+      outline
+      color="secondary"
+      [disabled]="isDeletingInvoice">
+      Delete Invoice
+      <ion-spinner *ngIf="isDeletingInvoice" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>

@@ -1,0 +1,236 @@
+<ion-header>
+  <ion-navbar *ngIf="authService.currentUser">
+    <!-- Horse is editable by: owner and trainer only -->
+    <ion-buttons end *ngIf="canEditHorse(authService.currentUser)">
+      <button ion-button icon-only (click)="goToHorseEdit()">
+        <ion-icon name="md-create"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+	<ion-refresher (ionRefresh)="refresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+  	<ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <!-- Avatar header -->
+  <avatar-header-left *ngIf="horseService.horse" [object]="horseService.horse" [type]="'horse'"></avatar-header-left>
+
+  <!-- Created By -->
+  <div class="created-by-div" *ngIf="horseService.horse && authService.currentUser._id !== horseService.horse._createdBy._id">
+    <p>Profile created by: {{horseService.horse._createdBy.name}}</p>
+  </div>
+
+  <!-- Horse trainer/leasedTo/owner -->
+  <div class="horse-owners">
+    <div *ngIf="!isLoading && horseService.horse._trainer">
+      <p class="title">TRAINER</p>
+      <ion-item text-wrap (click)="goToPublicProfile(horseService.horse._trainer, false)">
+        <ion-avatar item-start *ngIf="horseService.horse._trainer">
+          <img src="{{userService.getAvatarUrlForUser(horseService.horse._trainer)}}">
+        </ion-avatar>
+        <p>{{horseService.horse._trainer.name}}</p>
+        <p *ngIf="horseService.horse._trainer.barn">({{horseService.horse._trainer.barn}})</p>
+      </ion-item>
+    </div>
+
+    <div *ngIf="!isLoading && horseService.horse._leasedTo">
+      <p class="title">LEASED TO</p>
+      <ion-item text-wrap (click)="goToPublicProfile(horseService.horse._leasedTo, false)">
+        <ion-avatar item-start *ngIf="horseService.horse._leasedTo">
+          <img src="{{userService.getAvatarUrlForUser(horseService.horse._leasedTo)}}">
+        </ion-avatar>
+        <p>{{horseService.horse._leasedTo.name}}</p>
+        <p *ngIf="horseService.horse._leasedTo.barn">({{horseService.horse._leasedTo.barn}})</p>
+      </ion-item>
+    </div>
+
+    <ng-container *ngIf="!isLoading && horseService.horse._owners.length">
+      <div *ngFor="let owner of horseService.horse._owners">
+        <p class="title">OWNER</p>
+        <ion-item text-wrap (click)="goToPublicProfile(owner._user, false)">
+          <ion-avatar item-start *ngIf="owner._user">
+            <img src="{{userService.getAvatarUrlForUser(owner._user)}}">
+          </ion-avatar>
+          <p>{{owner._user.name}}</p>
+          <p *ngIf="owner.percentage">(Owns {{owner.percentage}}%)</p>
+        </ion-item>
+      </div>
+    </ng-container>
+  </div>
+
+  <ion-item class="background-grey" *ngIf="authService.isManager() && horseService.horse && isLeasedToOtherUser(horseService.horse)">
+    <p class="background-grey border-btm" no-margin text-wrap padding ion-text color="danger">This horse is leased to another owner. {{horseService.horse._leasedTo.name}} is currently responsible for payments.</p>
+  </ion-item>
+
+  <!-- Manager view: refreshable pending requests -->
+  <ion-list *ngIf="authService.isManager()">
+    <!-- Last refresh -->
+    <p text-center ion-text color="jumbo-grey" class="font-11" *ngIf="lastRefresh">Last Refresh: {{lastRefresh | date:'shortTime'}}</p>
+
+    <ion-item *ngIf="isLoadingRequests && !isRefreshing" class="loading-item">
+      <ion-spinner name="ios"></ion-spinner>
+    </ion-item>
+
+    <!-- Requests grouped by date -->
+    <ng-container *ngFor="let dateGroup of groupedRequests">
+      <p class="item-header" margin-left>{{dateGroup[0] | amUtc | amDateFormat: 'ddd MMMM D, YYYY'}}</p>
+      <ion-card *ngFor="let request of dateGroup[1]" class="service-card" [ngClass]="{
+                                            'declined-card':(request.declinedByHeadServiceProvider)
+                                            }">
+        <!-- Show name and class -->
+        <ion-item>
+          <ion-grid class="margin-top-1x">
+            <ion-row>
+              <ion-col>
+                <p class="text-uppercase font-10" *ngIf="request._show && request._show.name">{{request._show.name}}</p>
+                <h3 *ngIf="request._show && request._show.name && request.competitionClass">{{request.competitionClass}}</h3>
+                <p class="text-uppercase font-10" *ngIf="!request._show || !request._show.name">Non-Show Request</p>
+                <h3 class="text-bold" *ngIf="request.completedAt">Payment Requested</h3>
+              </ion-col>
+              <ion-col *ngIf="requestEditable(request)">
+                <ion-icon name="md-more" color="jumbo-grey" float-right (click)="openRequestActionSheet(request)"></ion-icon>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-item>
+
+        <!-- Avatar and service provider name -->
+        <ion-item class="margin-top-1x" (click)="goToPublicProfile(request._serviceProvider, false)">
+          <ion-avatar item-start *ngIf="request._serviceProvider">
+            <img src="{{userService.getAvatarUrlForUser(request._serviceProvider)}}">
+          </ion-avatar>
+          <p class="font-sm" ion-text color="dark">{{request._serviceProvider.name}}</p>
+        </ion-item>
+
+        <!-- Services -->
+        <ion-item>
+          <p ion-text color="dark"><span *ngFor="let service of request.services; let last = last">{{service.service}} (x{{service.quantity || 1}})<span *ngIf="!last">,</span> </span></p>
+        </ion-item>
+
+        <!-- Statuses -->
+        <ion-item
+          *ngIf="!request.declinedByHeadServiceProvider"
+          class="status-section"
+          [ngClass]="{
+                      'border-left-burgundy': (request.completedAt),
+                      'border-left-secondary': (!request.acceptedAt && !request.declinedAt && !request.completedAt) || (request.declinedAt && !request.acceptedAt),
+                      'border-left-teal': (request.acceptedAt && !request.completedAt)
+                    }">
+          <!-- Completed -->
+          <p ion-text color="lt-burgundy" *ngIf="request.completedAt" class="text-bold">Completed</p>
+
+          <!-- Pending (not accepted, declined, or completed) -->
+          <p ion-text color="secondary" class="text-bold" *ngIf="(!request.acceptedAt && !request.completedAt) && (!request.declinedAt || !request.declinedByHeadServiceProvider)">Pending</p>
+
+          <!-- Accepted but not completed -->
+          <p ion-text color="teal" class="text-bold" *ngIf="request.acceptedAt && !request.completedAt">Accepted</p>
+        </ion-item>
+
+        <div *ngIf="request.declinedByHeadServiceProvider" class="border-left-secondary action-btn-section">
+          <!-- Declined -->
+          <div class="status-left">
+            <p ion-text color="secondary" class="text-bold font-12" text-left>DECLINED</p>
+          </div>
+
+          <div class="status-right choose-provider" (click)="goToEditModal(request)">
+            <p ion-text color="light" class="text-bold">Choose Service Provider</p>
+          </div>
+        </div>
+      </ion-card>
+    </ng-container>
+
+    <!-- Blank state  -->
+    <ion-item *ngIf="!requests.length && !isLoadingRequests && !isRefreshing && !isLoading" text-wrap class="blank-state border-btm-none">
+      <div text-center>
+        <p>There are no requests at this time.</p>
+      </div>
+    </ion-item>
+  </ion-list>
+
+  <!-- Service Provider view: horse details and private notes -->
+  <ion-list *ngIf="authService.isServiceProvider() && horseService.horse">
+    <ion-item class="horse-info-chunk">
+      <p class="item-header">Horse Details</p>
+      <!-- Gender/birth year -->
+      <p>{{horseService.horse.gender}}<span *ngIf="horseService.horse.birthYear">, Born {{horseService.horse.birthYear}}</span></p>
+    </ion-item>
+
+    <!-- Horse manager notes -->
+    <ion-item class="horse-info-chunk" text-wrap>
+      <p class="item-header">HORSE MANAGER NOTES</p>
+      <p>{{horseService.horse.description}}</p>
+    </ion-item>
+
+    <ion-item class="horse-info-chunk" *ngIf="hasHorseDetails()" text-wrap>
+      <p class="item-header">Additional Information</p>
+
+      <!-- Registrations -->
+      <p *ngFor="let reg of horseService.horse.registrations">
+        <span *ngIf="reg.number">{{reg.name}} #{{reg.number}}</span>
+      </p>
+
+      <!-- Sire/dam -->
+      <p>
+        <span *ngIf="horseService.horse.sire">Sire: {{horseService.horse.sire}}</span><span *ngIf="horseService.horse.sire && horseService.horse.dam">, </span>
+        <span *ngIf="horseService.horse.dam">Dam: {{horseService.horse.dam}}</span>
+      </p>
+
+      <!-- Height/color -->
+      <p>
+        <span *ngIf="horseService.horse.height">{{horseService.horse.height}} Hands</span><span *ngIf="horseService.horse.height && horseService.horse.color">, </span>
+        <span *ngIf="horseService.horse.color">{{horseService.horse.color}}</span>
+      </p>
+    </ion-item>
+
+    <!-- My notes -->
+    <ion-item class="horse-info-chunk" text-wrap>
+      <p class="add-notes">
+        <span class="item-header">My Private Notes
+          <ion-icon *ngIf="!noteForHorse()" (click)="updatePrivateNote()" float-right name="ios-add-circle-outline" color="secondary" class="note-btn"></ion-icon>
+          <ion-icon *ngIf="noteForHorse()" (click)="updatePrivateNote()" float-right name="md-create" color="teal" class="note-btn"></ion-icon>
+        </span>
+      </p>
+      <p *ngIf="noteForHorse()">{{noteForHorse().note}}</p>
+    </ion-item>
+  </ion-list>
+
+  <ion-infinite-scroll (ionInfinite)="findAllRequests($event)" *ngIf="canLoadMore && !isRefreshing">
+    <ion-infinite-scroll-content
+      loadingSpinner="ios">
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
+
+  <div padding *ngIf="authService.isServiceProvider()">
+    <button
+      ion-button
+      block
+      round
+      color="secondary"
+      class="solid-round"
+      (click)="goToCustomInvoiceNew()">
+      Create Invoice
+    </button>
+  </div>
+</ion-content>
+
+<ion-footer>
+  <div padding
+  *ngIf="authService.isManager()"
+  class="btn-container">
+    <button
+      ion-button
+      block
+      round
+      color="secondary"
+      class="solid-round"
+      (click)="goToRequestNew()">
+      Schedule a Service
+    </button>
+  </div>
+</ion-footer>

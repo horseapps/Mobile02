@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "974423753590",
+    "firebase_url": "https://horselinc.firebaseio.com",
+    "project_id": "horselinc",
+    "storage_bucket": "horselinc.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:974423753590:android:86f716e039214960",
+        "android_client_info": {
+          "package_name": "com.HorseLinc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "974423753590-qugt9u7eakoubllntmju1fjtat3gg1fr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjBC1rbXlMC7WvTEieVuaOwYgUGUNMMNU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

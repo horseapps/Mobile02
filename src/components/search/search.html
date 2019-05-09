@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-list>
+    <!-- Search -->
+    <ion-item>
+      <ion-label color="jumbo-grey"><ion-icon color="jumbo-grey" name="search"></ion-icon></ion-label>
+      <ion-input #searchInput (keyup)="search()" placeholder="{{searchPlaceholder}}" [(ngModel)]="searchTerm" type="text"></ion-input>
+      <button icon-only ion-button clear type="button" item-right *ngIf="isSearching">
+        <i class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+      </button>
+    </ion-item>
+
+    <button ion-item detail-none color="white" *ngFor="let item of searchItems" (click)="chooseItem(item)">
+      <ion-avatar item-start>
+        <img src="{{userService.getAvatarUrlForUser(item)}}">
+      </ion-avatar>
+      <!-- If searching a user, show their name -->
+      <h2 *ngIf="item.name">{{item.name}}</h2>
+      <!-- If searching a horse, show their names and trainer -->
+      <h2 *ngIf="item.barnName">{{item.barnName}}</h2>
+      <p *ngIf="item.barnName"><em>"{{item.showName}}"</em></p>
+      <p *ngIf="item._trainer && item._trainer.name">{{item._trainer.name}} <span *ngIf="item._trainer.barn">({{item._trainer.barn}})</span></p>
+    </button>
+
+    <div *ngIf="serviceType === 'userService'" class="invite-div">
+      <p ion-text color="jumbo-grey">Can't find someone?</p>
+      <button ion-button block round outline color="secondary" (click)="emailInvite()">Invite to HorseLinc</button>
+    </div>
+  </ion-list>
+
+</ion-content>

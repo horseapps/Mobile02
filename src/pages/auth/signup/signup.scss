@@ -1,0 +1,16 @@
+page-signup {
+  .list-ios > .item-block:first-child {
+    border-top: none;
+  }
+
+  .signup-navbar {
+    position: fixed;
+    box-shadow: none !important;
+    border-bottom: none !important;
+  }
+
+  .toolbar-background,
+  .toolbar-background-ios {
+    border-bottom: none !important;
+  }
+}

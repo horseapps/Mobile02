@@ -1,0 +1,7 @@
+<ion-tabs selectedIndex="3" #myTabs>
+  <ion-tab [show]="authService.isManager()" [root]="tab1Root" tabTitle="Horse" tabIcon="horseicon"></ion-tab>
+  <ion-tab [show]="authService.isServiceProvider()" [root]="tab1Root" tabTitle="Horses" tabIcon="horseicon"></ion-tab>
+  <ion-tab [show]="authService.isServiceProvider()" [root]="tab2Root" tabTitle="Schedule" tabIcon="far-fa-calendar"></ion-tab>
+  <ion-tab [root]="tab3Root" tabTitle="Payments" tabIcon="fa-usd"></ion-tab>
+  <ion-tab [root]="tab4Root" tabTitle="Profile" tabIcon="fa-user-circle"></ion-tab>
+</ion-tabs>

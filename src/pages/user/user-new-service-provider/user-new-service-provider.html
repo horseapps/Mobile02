@@ -1,0 +1,26 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button clear (click)="viewCtrl.dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>Add Service Provider</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list>
+    <p margin-left>
+      Add a Service Provider to your profile in order to give them
+      the ability to invoice you directly for services they provide.
+      Invoices will require your approval prior to payment.
+    </p>
+    <p margin-left>
+      When a Service Provider is added, services don't have to be
+      scheduled ahead of time in order for the Service Provider
+      to request payment.
+    </p>
+    <page-user-service-provider-form [submitFunction]="submitFunction"></page-user-service-provider-form>
+  </ion-list>
+</ion-content>

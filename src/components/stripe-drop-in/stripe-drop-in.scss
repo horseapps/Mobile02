@@ -1,0 +1,39 @@
+stripe-drop-in-payment {
+  ion-label {
+    font-size: 16px !important;
+    flex: 1 0 100px !important;
+  }
+
+  .form-control-error {
+    padding: 0px 0px 0px 6px;
+  }
+
+  .btn-container {
+    height: 88px;
+
+    .button {
+      margin-top: 20px;
+    }
+  }
+
+  .StripeElement {
+    background-color: white;
+    padding: 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 #e6ebf1;
+    -webkit-transition: box-shadow 150ms ease;
+    transition: box-shadow 150ms ease;
+  }
+
+  .StripeElement--focus {
+    box-shadow: 0 1px 3px 0 #cfd7df;
+  }
+
+  .StripeElement--invalid {
+    border-color: #fa755a;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}

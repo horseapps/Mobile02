@@ -1,0 +1,26 @@
+<ion-item text-wrap>
+  <ion-avatar item-start class="avatar">
+    <div class="img-container" *ngIf="!object?.avatar">
+      <img *ngIf="type === 'horse'" src="assets/images/horse-avatar-placeholder.png" />
+      <img *ngIf="type === 'horse manager'" src="assets/images/avatar-placeholder.png" />
+    </div>
+
+    <div class="img-container" *ngIf="object.avatar?.styles">
+      <img src="{{constants.AWS_S3_BASE_URL}}/{{object.avatar.styles.medium_square}}" />
+    </div>
+  </ion-avatar>
+
+
+  <ng-container *ngIf="type === 'horse'">
+    <h2 ion-text color="light" *ngIf="object.barnName">{{object.barnName}}</h2>
+    <p ion-text color="light" *ngIf="object.showName">"{{object.showName}}"</p>
+  </ng-container>
+
+  <ng-container *ngIf="type === 'horse manager'">
+    <h2 ion-text color="light" *ngIf="object.name">{{object.name}}</h2>
+    <p ion-text color="light" *ngIf="object.barn">"{{object.barn}}"</p>
+
+    <p ion-text color="lt-transparent" margin-top margin-bottom class="font-14" *ngIf="object.phone">{{object.phone}}</p>
+    <p ion-text color="lt-transparent" class="font-14 margin-bottom-2x" *ngIf="object.location">{{object.location}}</p>
+  </ng-container>
+</ion-item>

@@ -1,0 +1,77 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher (ionRefresh)="findHorse($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-item *ngIf="isLoading && !isRefreshing" class="loading-item">
+    <ion-spinner name="ios"></ion-spinner>
+  </ion-item>
+
+  <ng-container *ngIf="!isLoading && horse">
+    <!-- Avatar header -->
+    <div class="avatar-container">
+      <ion-avatar class="avatar">
+        <div>
+          <img src="{{horseService.getAvatarUrlForHorse(horse)}}" style="width: 100%; height: 100%;">
+        </div>
+      </ion-avatar>
+
+      <h2 text-center class="text-bold" *ngIf="horse.barnName">{{horse.barnName}}</h2>
+      <p text-center class="font-16" *ngIf="horse.showName">"{{horse.showName}}"</p>
+    </div>
+
+    <!-- Trainer/Owner -->
+    <div class="horse-info">
+      <ng-container *ngIf="horse._trainer">
+        <p class="item-header" padding-top>Trainer</p>
+        <ion-item text-wrap (click)="goToPublicProfile(horse._trainer, false)">
+          <ion-avatar item-start>
+            <img src="{{userService.getAvatarUrlForUser(horse._trainer)}}">
+          </ion-avatar>
+          <p>{{horse._trainer.name}}</p>
+          <p *ngIf="horse._trainer.barn">({{horse._trainer.barn}})</p>
+        </ion-item>
+      </ng-container>
+
+      <ng-container *ngIf="horse._leasedTo">
+        <p class="item-header" padding-top>Leased To</p>
+        <ion-item text-wrap (click)="goToPublicProfile(horse._leasedTo, false)">
+          <ion-avatar item-start>
+            <img src="{{userService.getAvatarUrlForUser(horse._leasedTo)}}">
+          </ion-avatar>
+          <p>{{horse._leasedTo.name}}</p>
+          <p *ngIf="horse._leasedTo.barn">({{horse._leasedTo.barn}})</p>
+        </ion-item>
+      </ng-container>
+
+      <ng-container *ngIf="horse._owners.length">
+        <p class="item-header">Owner(s)</p>
+        <ion-item *ngFor="let owner of horse._owners" text-wrap (click)="goToPublicProfile(owner._user, authService.isServiceProvider())">
+          <ion-avatar item-start>
+            <img src="{{userService.getAvatarUrlForUser(owner._user)}}">
+          </ion-avatar>
+          <p>{{owner._user.name}}</p>
+          <p *ngIf="owner._user.barn">({{owner._user.barn}})</p>
+        </ion-item>
+      </ng-container>
+
+      <ion-item class="margin-top-2x">
+        <p *ngIf="horse.gender" margin-bottom>{{horse.gender}}</p>
+        <ng-container *ngIf="horse.registrations">
+          <p *ngFor="let registration of horse.registrations">{{registration.name}} #{{registration.number}}</p>
+        </ng-container>
+        <p ion-text color="primary" margin-top *ngIf="horse.description">{{horse.description}}</p>
+      </ion-item>
+    </div>
+  </ng-container>
+</ion-content>

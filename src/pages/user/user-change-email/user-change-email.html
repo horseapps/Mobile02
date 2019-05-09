@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button clear (click)="viewCtrl.dismiss()">
+        <ion-icon class="back-btn" name="md-close" color="light"></ion-icon>
+      </button>
+    </ion-buttons>
+
+    <ion-title>Update Email</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content class="main-form" margin-top>
+  <form [formGroup]="form" novalidate *ngIf="authService.currentUser">
+    <ion-list>
+      <ion-item>
+        <ion-input formControlName="email" type="text" required placeholder="Email"></ion-input>
+      </ion-item>
+      <control-errors [control]="form.controls.email"></control-errors>
+    </ion-list>
+  </form>
+</ion-content>
+
+<ion-footer>
+  <div padding class="btn-container">
+    <button
+      ion-button
+      block
+      round
+      color="secondary"
+      class="solid-round"
+      (click)="submit()"
+      [disabled]="isSubmitting">
+      Save Changes
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>
+
+
+

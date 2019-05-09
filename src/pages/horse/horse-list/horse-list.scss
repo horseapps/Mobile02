@@ -1,0 +1,62 @@
+page-horse-list {
+  .card-list {
+    .item {
+      border-radius: 8px;
+      border-bottom: none !important;
+    }
+  }
+
+  .item-ios ion-avatar {
+    min-width: 50px;
+    min-height: 50px;
+
+    img {
+      width: 50px;
+      height: 50px;
+    }
+  }
+
+  .btn-container {
+    position: fixed;
+    bottom: 55px;
+    width: 100%;
+  }
+
+  // iPhone X needs different styles
+  @media only screen
+    and (device-width: 375px)
+    and (device-height: 812px)
+    and (-webkit-device-pixel-ratio: 3) {
+    .btn-container {
+      bottom: 80px;
+    }
+  }
+
+  .group-header {
+    margin-bottom: 5px;
+
+    span {
+      font-size: 20px;
+    }
+  }
+
+  .horse-card {
+    margin-bottom: 5px;
+  }
+
+  .item-flex-div {
+    display: flex;
+    align-items: center;
+
+    span {
+      width: 90%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .icon {
+      text-align: right;
+      width: 10%;
+    }
+  }
+}

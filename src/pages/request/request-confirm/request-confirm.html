@@ -1,0 +1,109 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="viewCtrl.dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Confirm
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+  <ion-list class="invoice-list">
+    <!-- Only show this request data if coming from request edit/create views -->
+    <ng-container *ngIf="form">
+      <p class="item-header" margin-left>Date</p>
+      <ion-item *ngIf="requestService.request.date">
+        {{requestService.request.date | date:'longDate'}}
+      </ion-item>
+
+      <p class="item-header" *ngIf="requestService.request._show" margin-left>Show</p>
+      <ion-item *ngIf="requestService.request._show && requestService.request._show._id" class="text-capitalize">
+        {{requestService.request._show.name}}
+      </ion-item>
+
+      <p class="item-header" margin-left>Class</p>
+      <ion-item *ngIf="requestService.request.competitionClass">
+        {{requestService.request.competitionClass}}
+      </ion-item>
+    </ng-container>
+
+    <p class="item-header" margin-left>Service Provider</p>
+    <ion-item *ngIf="requestService.request._serviceProvider.name">
+      {{requestService.request._serviceProvider.name}}
+    </ion-item>
+
+    <p class="item-header" margin-left *ngIf="requestService.request._reassignedTo && !form">Reassigned To</p>
+    <ion-item *ngIf="requestService.request._reassignedTo && !form">
+      {{requestService.request._reassignedTo.name}}
+    </ion-item>
+
+    <p class="item-header" margin-left *ngIf="requestService.request.providerNotes && !form">Provider Notes</p>
+    <ion-item *ngIf="requestService.request.providerNotes && !form">
+      {{requestService.request.providerNotes}}
+    </ion-item>
+
+    <ng-container *ngIf="requestService.request._horse._trainer && !form">
+      <p class="item-header" margin-left>Trainer</p>
+      <ion-item>
+        {{requestService.request._horse._trainer?.name}}
+      </ion-item>
+    </ng-container>
+
+    <p class="item-header" margin-left>Horse</p>
+    <ion-item *ngIf="requestService.request._horse.barnName">
+      {{requestService.request._horse.barnName}}
+    </ion-item>
+
+    <p class="item-header" margin-left>Services</p>
+    <ion-item *ngIf="requestService.request.services.length" class="border-btm">
+      <ion-row *ngFor="let service of requestService.request.services">
+        <ion-col class="padding-left-none">
+          {{service.service}} (x{{service.quantity || 1}})
+        </ion-col>
+        <ion-col text-right *ngIf="authService.isServiceProvider()">
+          {{(service.rate * (service.quantity || 1)) | currency:'USD':true:'1.2'}}
+        </ion-col>
+
+        <ion-col text-right *ngIf="authService.isManager()">
+          {{constants.addServiceFee(service.rate * (service.quantity || 1)) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-item>
+
+    <!-- Total -->
+    <ion-item class="border-btm-none">
+      <ion-row>
+        <ion-col class="padding-left-none">
+          <p ion-text color="jumbo-grey">TOTAL</p>
+        </ion-col>
+        <ion-col text-right *ngIf="authService.isServiceProvider()">
+          {{requestService.request.total | currency:'USD':true:'1.2'}}
+        </ion-col>
+
+        <ion-col text-right *ngIf="authService.isManager()">
+          {{constants.addServiceFee(requestService.request.total) | currency:'USD':true:'1.2'}}
+        </ion-col>
+      </ion-row>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<ion-footer>
+  <div padding class="btn-container">
+    <button
+      round
+      color="secondary"
+      ion-button
+      block
+      (click)="submit()"
+      strong="true"
+      [disabled]="((form && !form.valid) || !requestService.request.services.length) || isSubmitting">
+      Confirm
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</ion-footer>

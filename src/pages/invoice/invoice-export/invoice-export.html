@@ -1,0 +1,150 @@
+<ion-header>
+  <ion-navbar>
+    <ion-buttons start>
+      <button ion-button icon-only clear (click)="dismiss()">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+    </ion-buttons>
+    <ion-title>
+      Export Payment History
+    </ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content #content>
+  <form novalidate [formGroup]="form" class="main-form">
+    <!-- Payment type selector -->
+    <ion-item class="select-wrapper">
+      <ion-select
+        placeholder="Payment Type"
+        formControlName="paymentType"
+        multiple="false"
+        [selectOptions]="{title: 'Payment Type'}">
+        <ion-option value="all">
+          All Payments
+        </ion-option>
+        <ion-option value="outstanding">
+          Outstanding Payments
+        </ion-option>
+        <ion-option value="complete">
+          Completed Payments
+        </ion-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-label class="category-label" margin-left>INVOICE DATE(S)</ion-label>
+    <!-- Set earliest date to query with text input and/or calendar picker -->
+    <ion-card>
+      <ion-grid>
+        <ion-row class="date-input-row">
+          <ion-col col-3>
+            <ion-label class="date-label">From:</ion-label>
+          </ion-col>
+          <ion-col col-7>
+            <ion-input formControlName="sinceDate" type="text" placeholder="MM/DD/YYYY" (ionChange)="setDateFromInput('since', $event)"></ion-input>
+          </ion-col>
+          <ion-col col-2 text-right>
+            <ion-icon name="ios-calendar" color="primary" (click)="goToCalendarModal({ function: sinceDateFunction, date: sinceDate })">
+            </ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card>
+
+    <!-- Set latest date to query with text input and/or calendar picker -->
+    <ion-card>
+      <ion-grid>
+        <ion-row class="date-input-row">
+          <ion-col col-3>
+            <ion-label class="date-label">To:</ion-label>
+          </ion-col>
+          <ion-col col-7>
+            <ion-input formControlName="untilDate" type="text" placeholder="MM/DD/YYYY" (ionChange)="setDateFromInput('until', $event)"></ion-input>
+          </ion-col>
+          <ion-col col-2 text-right>
+            <ion-icon name="ios-calendar" color="primary" (click)="goToCalendarModal({ function: untilDateFunction, date: untilDate })">
+            </ion-icon>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-card>
+
+    <!-- Service providers can search for / filter by horse managers -->
+    <ion-label margin-left *ngIf="authService.isServiceProvider()" class="category-label">HORSE MANAGERS</ion-label>
+    <ion-item *ngIf="authService.isServiceProvider() && !horseManagers.length" (click)="goToSearchModal({ function: horseManagersFunction, placeholderText:'Horse Manager Name', serviceType: 'userService', role: 'horse manager' })" class="search-item">
+      <p *ngIf="!horseManagers.length" ion-text class="search-placeholder" color="jumbo-grey">Tap To Search</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+    <!-- List horse managers who were already added this visit -->
+    <div id="horse-managers-section" *ngFor="let manager of horseManagers; let i = index">
+      <ion-item>
+        <ion-avatar class="searched-avatar" item-start>
+          <img src="{{userService.getAvatarUrlForUser(manager)}}">
+        </ion-avatar>
+
+        <ion-label class="searched-name" ion-text color="dark">{{manager.name}}</ion-label>
+        <!-- Remove searched-for horse manager -->
+        <ion-icon class="remove-btn" (click)="removeManager(i)" color="danger" name="remove-circle" item-right></ion-icon>
+      </ion-item>
+    </div>
+    <!-- Add new horse manager -->
+    <ion-item class="add-item" *ngIf="horseManagers.length" (click)="goToSearchModal({ function: horseManagersFunction, placeholderText:'Horse Manager Name', serviceType: 'userService', role: 'horse manager' })">
+      <span ion-text color="secondary">Add Another Horse Manager <ion-icon float-right name="ios-add-circle-outline" color="secondary"
+          class="add-btn"></ion-icon></span>
+    </ion-item>
+
+    <!-- Horse managers can search for / filter by service providers -->
+    <ion-label margin-left *ngIf="authService.isManager()" class="category-label" margin-left>SERVICE PROVIDERS</ion-label>
+    <ion-item *ngIf="authService.isManager() && !serviceProviders.length" (click)="goToSearchModal({ function: serviceProvidersFunction, placeholderText:'Service Provider Name', serviceType: 'userService', role: 'service provider' })" class="search-item">
+      <p *ngIf="!serviceProviders.length" ion-text class="search-placeholder" color="jumbo-grey">Tap To Search</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+    <!-- List service providers who were already added this visit -->
+    <div id="service providers-section" *ngFor="let provider of serviceProviders; let i = index">
+      <ion-item>
+        <ion-avatar class="searched-avatar" item-start>
+          <img src="{{userService.getAvatarUrlForUser(provider)}}">
+        </ion-avatar>
+
+        <ion-label class="searched-name" ion-text color="dark">{{provider.name}}</ion-label>
+        <!-- Remove searched-for service provider -->
+        <ion-icon class="remove-btn" (click)="removeProvider(i)" color="danger" name="remove-circle" item-right></ion-icon>
+      </ion-item>
+    </div>
+    <!-- Add new service provider -->
+    <ion-item class="add-item" *ngIf="serviceProviders.length" (click)="goToSearchModal({ function: serviceProvidersFunction, placeholderText:'Service Provider Name', serviceType: 'userService', role: 'service provider' })">
+      <span ion-text color="secondary">Add Another Service Provider <ion-icon float-right name="ios-add-circle-outline" color="secondary"
+          class="add-btn"></ion-icon></span>
+    </ion-item>
+
+    <!-- All users can search for / filter by horses -->
+    <ion-label margin-left class="category-label" margin-left>HORSES</ion-label>
+    <ion-item *ngIf="!horses.length" (click)="goToSearchModal({ function: horsesFunction, placeholderText:'Horse Name', serviceType: 'horseService' })"
+      class="search-item">
+      <p *ngIf="!horses.length" ion-text class="search-placeholder" color="jumbo-grey">Tap To Search</p>
+      <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+    </ion-item>
+    <!-- List horses who were already added this visit -->
+    <div id="horses-section" *ngFor="let horse of horses; let i = index">
+      <ion-item>
+        <ion-avatar class="searched-avatar" item-start>
+          <img src="{{userService.getAvatarUrlForUser(horse)}}">
+        </ion-avatar>
+
+        <ion-label class="searched-name" ion-text color="dark">{{horse.barnName}} <em>"{{horse.showName}}"</em></ion-label>
+        <!-- Remove searched-for horse -->
+        <ion-icon class="remove-btn" (click)="removeHorse(i)" color="danger" name="remove-circle" item-right></ion-icon>
+      </ion-item>
+    </div>
+    <!-- Add new horse -->
+    <ion-item class="add-item" *ngIf="horses.length" (click)="goToSearchModal({ function: horsesFunction, placeholderText:'Horse Name', serviceType: 'horseService' })">
+      <span ion-text color="secondary">Add Another Horse <ion-icon float-right name="ios-add-circle-outline" color="secondary"
+          class="add-btn"></ion-icon></span>
+    </ion-item>
+  </form>
+  <div class=submit-wrapper>
+    <button ion-button class="submit" (click)="exportInvoices()">
+      Export Invoices
+    </button>
+  </div>
+</ion-content>

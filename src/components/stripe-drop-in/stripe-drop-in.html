@@ -1,0 +1,57 @@
+<form method="post" id="payment-form">
+  <ion-list margin-left margin-right [attr.margin-top]="!fromAcctSetup ? '' : null">
+    <!-- Stripe Drop-in UI -->
+    <div class="form-row" [hidden]="authService.currentUser.stripeLast4 && !showForm && !fromAcctSetup">
+      <div id="card-element">
+        <!-- a Stripe Element will be inserted here. -->
+      </div>
+
+      <!-- Used to display Element errors -->
+      <div id="card-errors" class="form-control-error" role="alert"></div>
+    </div>
+
+    <!-- Current credit card info -->
+    <ng-container *ngIf="!fromAcctSetup">
+      <ion-item *ngIf="authService.currentUser.stripeLast4 && !showForm" class="border-top">
+        <ion-label fixed>Card Number</ion-label>
+        <ion-input name="Last4" disabled [(ngModel)]="authService.currentUser.stripeLast4"></ion-input>
+      </ion-item>
+
+      <ion-item *ngIf="expDate && !showForm">
+        <ion-label fixed>Exp Date</ion-label>
+        <ion-input name="expDate" disabled [(ngModel)]="expDate"></ion-input>
+      </ion-item>
+    </ng-container>
+  </ion-list>
+
+  <!-- Submit payment information -->
+  <div [ngClass]="{'btn-container': fromAcctSetup}" *ngIf="showForm || fromAcctSetup">
+    <button
+      round
+      class="solid-round"
+      color="secondary"
+      ion-button
+      block
+      type="submit"
+      strong="true"
+      [disabled]="isSubmitting">
+      {{buttonText}}
+      <ion-spinner *ngIf="isSubmitting" name="ios-small" color="white" margin-left></ion-spinner>
+    </button>
+  </div>
+</form>
+
+<!-- Change default payment method -->
+<div *ngIf="!fromAcctSetup">
+  <button
+    round
+    class="solid-round"
+    color="secondary"
+    ion-button
+    block
+    strong="true"
+    [hidden]="!authService.currentUser.stripeLast4 || showForm"
+    (click)="showForm = true">
+    Edit
+  </button>
+</div>

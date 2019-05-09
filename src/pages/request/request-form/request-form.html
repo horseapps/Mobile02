@@ -1,0 +1,148 @@
+<ion-content #content>
+  <ion-list>
+    <form novalidate [formGroup]="form" class="main-form">
+      <ion-list>
+
+        <p class="item-header" margin-left>Horse Show (Optional)</p>
+        <!-- Show search bar -->
+        <ion-searchbar
+          placeholder="Search for Show by Title"
+          [(ngModel)]="searchText"
+          [ngModelOptions]="{ standalone: true }"
+          (ionInput)="searchShows()"
+          (ionClear)="clearShowSearch()"
+          class="border-top">
+        </ion-searchbar>
+
+        <!-- Show results -->
+        <ion-item *ngFor="let show of horseShows" tappable (click)="chooseShow(show)">
+          <p class="text-capitalize">{{show.name}}</p>
+        </ion-item>
+
+        <!-- Blank state for searchbar -->
+        <ion-item ion-item detail-none color="white" *ngIf="searchText && searchText.length > 3 && !horseShows.length">
+          <p class="text-italic">Sorry, there are no shows matching that search</p>
+        </ion-item>
+
+        <!-- Show name -->
+        <ion-item formGroupName="_show">
+          <ion-input class="show-input" placeholder="Or enter show here" formControlName="name"></ion-input>
+        </ion-item>
+
+        <!-- Date -->
+        <ion-card class="input-item input-card">
+          <ion-grid>
+            <ion-row>
+              <ion-col col-2>
+                <ion-label>Date</ion-label>
+              </ion-col>
+              <ion-col col-8>
+                <!-- Date input saves new values as the user types -->
+                <ion-input class="date-input" formControlName="date" type="text" placeholder="MM/DD/YYYY" (ionChange)="setDateFromInput($event)"></ion-input>
+              </ion-col>
+              <ion-col col-2 text-right>
+                <!-- Calendar datepicker -->
+                <ion-icon name="ios-calendar" color="primary" (click)="goToCalendarModal({ function: dateFunction, date: date })">
+                </ion-icon>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card>
+        <control-errors [control]="form.controls.date" [submitAttempt]="submitAttempt"></control-errors>
+
+        <!-- Competition class-->
+        <ion-item>
+          <ion-input formControlName="competitionClass" type="text" placeholder="Competition Class"></ion-input>
+        </ion-item>
+        <control-errors [control]="form.controls.competitionClass" [submitAttempt]="submitAttempt"></control-errors>
+
+        <!-- Service provider -->
+        <p class="item-header" margin-left>Service Provider</p>
+        <ion-item (click)="goToSearchModal(serviceProviderFunction, 'Service Provider Name')" class="search-item">
+
+          <ion-avatar item-start *ngIf="form.controls._serviceProvider.value">
+            <img *ngIf="!updatingServiceProvider || newProviderSelected" src="{{userService.getAvatarUrlForUser(form.controls._serviceProvider.value)}}">
+
+            <img *ngIf="updatingServiceProvider && !newProviderSelected" src="assets/images/grey-placeholder.jpg">
+          </ion-avatar>
+
+          <p *ngIf="!form.controls._serviceProvider.value" ion-text color="jumbo-grey">Service Provider Name</p>
+
+          <p
+            [ngClass]="{'color-grey': request}" *ngIf="form.controls._serviceProvider.value && (!updatingServiceProvider || newProviderSelected)" ion-text color="dark">{{form.controls._serviceProvider.value.name}}</p>
+          <p ion-text color="danger" *ngIf="updatingServiceProvider && !newProviderSelected">Select New Service Provider</p>
+          <ion-icon name="search" item-end color="jumbo-grey"></ion-icon>
+        </ion-item>
+        <p ion-text color="dark" margin-left *ngIf="request">&#42; To change the service provider, please delete this request and create a new one.</p>
+        <control-errors [control]="form.controls._serviceProvider" [submitAttempt]="submitAttempt"></control-errors>
+
+        <!-- Services -->
+        <p class="item-header" margin-left>Services</p>
+
+        <ion-card *ngFor="let selectedService of selectedServices; let i=index" class="service-item service-card border-btm">
+            <ion-grid class="margin-top-none margin-bottom-none">
+              <ion-row class="margin-top-none margin-bottom-none margin-left margin-right">
+                <ion-col col-8 class="margin-top-none margin-bottom-none">
+                  <ion-label margin-left class="service-name">{{selectedService.service}}</ion-label>
+                </ion-col>
+                <ion-col class="margin-top-none margin-bottom-none">
+                  <ion-icon item-content class="remove-btn" color="danger" name="remove-circle" (click)="removeService(i)" item-right></ion-icon>
+                </ion-col>
+              </ion-row>
+              <ion-row class="margin-top-none margin-bottom-none">
+                <ion-col col-7 class="margin-top-none margin-bottom-none">
+                  <ion-label margin-left class="rate-label">Service Price {{constants.addServiceFee(selectedService.rate) | currency:'USD':true:'1.2'}}</ion-label>
+                </ion-col>
+                <ion-col col-2 class="margin-top-none margin-bottom-none">
+                  <ion-label class="quantity-label">Qty</ion-label>
+                </ion-col>
+                <ion-col col-2 class="margin-top-none margin-bottom-none">
+                  <ion-input class="quantity-input" type="text" pattern="\d*" value="{{selectedService.quantity}}" (ionFocus)="scrollToServiceInput(i);clearValue($event)" (ionChange)="setServiceQuantity(selectedService, $event)"></ion-input>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+        </ion-card>
+
+        <!-- Service selector opens checkbox list of provider's services -->
+        <ion-item>
+          <ion-label>Select Services</ion-label>
+          <ion-select #serviceSelector (ionChange)="updateServices($event)" selectedText=" " multiple="true" name="services">
+            <ion-option *ngFor="let service of services" ng-model="service" [value]="service" [selected]="inServiceList(service)">{{service.service}} {{constants.addServiceFee(service.rate) | currency:'USD':true:'1.2'}}</ion-option>
+          </ion-select>
+        </ion-item>
+        <div *ngIf="servicesError" class="form-control-error">All services must have a whole number quantity greater than 0 - numeric characters only.</div>
+        <div *ngIf="submitAttempt && form.controls.services.controls.length < 1" class="form-control-error">Required</div>
+      </ion-list>
+
+      <ion-list>
+        <ion-item>
+          <ion-textarea
+            autocomplete="on"
+            autocorrect="on"
+            fz-elastic
+            placeholder="Please describe any specific requests or special needs for the horse (this field optional)"
+            rows="4"
+            maxlength="300"
+            type="text"
+            (keyup)="maxLength()"
+            formControlName="instructions">
+          </ion-textarea>
+        </ion-item>
+      </ion-list>
+
+      <div class="btn-container">
+        <button
+          round
+          outline
+          color="secondary"
+          ion-button
+          block
+          (click)="goToConfirmation()"
+          strong="true"
+          [disabled]="!form.valid || !form.value.services.length || servicesError">
+          Next
+        </button>
+      </div>
+    </form>
+  </ion-list>
+</ion-content>
