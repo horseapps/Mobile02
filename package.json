@@ -54,7 +54,7 @@
     "angular2-elastic": "^0.13.0",
     "angular2-moment": "^1.7.1",
     "angular2-text-mask": "^8.0.4",
-    "aws-sdk": "^2.32.0",
+    "aws-sdk": "^2.814.0",
     "call-number": "^1.0.1",
     "cordova-android": "6.4.0",
     "cordova-fabric-plugin": "^1.1.10",
